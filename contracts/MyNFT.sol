@@ -8,11 +8,12 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
 contract MyNFT is 
-    ERC721,
     ERC721URIStorage,
     ERC721Burnable,
     AccessControl
 {
+    uint256 testing = 0;
+
     mapping(address => uint256) private _mintedList;
 
     uint256 public immutable MAX_PER_ADDRESS;
@@ -26,11 +27,11 @@ contract MyNFT is
 
     bytes32 public constant MINTER_ROLE = keccak256("ADMIN_ROLE");
 
-    constructor(uint256 maxPublic, uint256 maxReserved, uint256 startingReservedID, uint256 maxPerAddress, address[] memory adminAddresses) ERC721("Tunes", "TUNE") {
+    constructor(uint256 maxPublic, uint256 maxReserved, uint256 startingReservedId, uint256 maxPerAddress, address[] memory adminAddresses) ERC721("Tunes", "TUNE") {
         MAX_PER_ADDRESS = maxPerAddress;
         MAX_PUBLIC = maxPublic;
         MAX_RESERVED = maxReserved;
-        STARTING_RESERVED_ID = startingReservedID;
+        STARTING_RESERVED_ID = startingReservedId;
 
         for(uint256 i = 0; i < adminAddresses.length; i++) {
             require(adminAddresses[i] != address(0), "Can't add the null address");
@@ -77,5 +78,19 @@ contract MyNFT is
         
         totalPublicSupply += 1;
         _safeMint(msg.sender, tokenId);
+    }
+
+    function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
+        super._burn(tokenId);
+    }
+
+    function tokenURI(uint256 tokenId) public view override(ERC721, ERC721URIStorage) returns (string memory) {
+        return super.tokenURI(tokenId);
+    }
+
+    function supportsInterface(bytes4 interfaceId) public view virtual override(AccessControl, ERC721) returns (bool) {
+        return
+            ERC721.supportsInterface(interfaceId) ||
+            AccessControl.supportsInterface(interfaceId);
     }
 }

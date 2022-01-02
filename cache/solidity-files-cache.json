@@ -1,10 +1,10 @@
 {
   "_format": "hh-sol-cache-2",
   "files": {
-    "/Users/samgoldman/projects/smart-contracts/nft-project/ethereum/contracts/EmotionalShapes.sol": {
-      "lastModificationDate": 1640624732359,
-      "contentHash": "0f76933eae068ce4b2289997c919b2ac",
-      "sourceName": "contracts/EmotionalShapes.sol",
+    "/Users/samgoldman/projects/smart-contracts/nft-project/nft/contracts/MyNFT.sol": {
+      "lastModificationDate": 1641070237858,
+      "contentHash": "e55ce7f3eb2609cb40237d187d5f9207",
+      "sourceName": "contracts/MyNFT.sol",
       "solcConfig": {
         "version": "0.8.0",
         "settings": {
@@ -30,17 +30,20 @@
       },
       "imports": [
         "@openzeppelin/contracts/token/ERC721/ERC721.sol",
+        "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol",
+        "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol",
+        "@openzeppelin/contracts/access/AccessControl.sol",
         "@openzeppelin/contracts/utils/Counters.sol"
       ],
       "versionPragmas": [
         "^0.8.0"
       ],
       "artifacts": [
-        "EmotionalShapes"
+        "MyNFT"
       ]
     },
-    "/Users/samgoldman/projects/smart-contracts/nft-project/ethereum/node_modules/@openzeppelin/contracts/token/ERC721/ERC721.sol": {
-      "lastModificationDate": 1640624733293,
+    "/Users/samgoldman/projects/smart-contracts/nft-project/nft/node_modules/@openzeppelin/contracts/token/ERC721/ERC721.sol": {
+      "lastModificationDate": 1640628993396,
       "contentHash": "81722bd5f5980edd45a9a72c4119225a",
       "sourceName": "@openzeppelin/contracts/token/ERC721/ERC721.sol",
       "solcConfig": {
@@ -82,8 +85,123 @@
         "ERC721"
       ]
     },
-    "/Users/samgoldman/projects/smart-contracts/nft-project/ethereum/node_modules/@openzeppelin/contracts/utils/Counters.sol": {
-      "lastModificationDate": 1640624733311,
+    "/Users/samgoldman/projects/smart-contracts/nft-project/nft/node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol": {
+      "lastModificationDate": 1640628993430,
+      "contentHash": "1744bec5bc5b6d27a7719cb8d4b5852f",
+      "sourceName": "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol",
+      "solcConfig": {
+        "version": "0.8.0",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../ERC721.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "ERC721URIStorage"
+      ]
+    },
+    "/Users/samgoldman/projects/smart-contracts/nft-project/nft/node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol": {
+      "lastModificationDate": 1640628993402,
+      "contentHash": "8089cfc0513f69e6a7ea60d8c5c3553d",
+      "sourceName": "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol",
+      "solcConfig": {
+        "version": "0.8.0",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../ERC721.sol",
+        "../../../utils/Context.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "ERC721Burnable"
+      ]
+    },
+    "/Users/samgoldman/projects/smart-contracts/nft-project/nft/node_modules/@openzeppelin/contracts/access/AccessControl.sol": {
+      "lastModificationDate": 1640628993118,
+      "contentHash": "7566c6c5c9ef0ebe07a660f6633c95d9",
+      "sourceName": "@openzeppelin/contracts/access/AccessControl.sol",
+      "solcConfig": {
+        "version": "0.8.0",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./IAccessControl.sol",
+        "../utils/Context.sol",
+        "../utils/Strings.sol",
+        "../utils/introspection/ERC165.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "AccessControl"
+      ]
+    },
+    "/Users/samgoldman/projects/smart-contracts/nft-project/nft/node_modules/@openzeppelin/contracts/utils/Counters.sol": {
+      "lastModificationDate": 1640628993193,
       "contentHash": "a21834c04c11733a9018196d6b1b0e89",
       "sourceName": "@openzeppelin/contracts/utils/Counters.sol",
       "solcConfig": {
@@ -117,8 +235,8 @@
         "Counters"
       ]
     },
-    "/Users/samgoldman/projects/smart-contracts/nft-project/ethereum/node_modules/@openzeppelin/contracts/token/ERC721/IERC721.sol": {
-      "lastModificationDate": 1640624733293,
+    "/Users/samgoldman/projects/smart-contracts/nft-project/nft/node_modules/@openzeppelin/contracts/token/ERC721/IERC721.sol": {
+      "lastModificationDate": 1640628993539,
       "contentHash": "937105c04c9b4b689f8ee2d6d161994d",
       "sourceName": "@openzeppelin/contracts/token/ERC721/IERC721.sol",
       "solcConfig": {
@@ -154,8 +272,8 @@
         "IERC721"
       ]
     },
-    "/Users/samgoldman/projects/smart-contracts/nft-project/ethereum/node_modules/@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol": {
-      "lastModificationDate": 1640624733294,
+    "/Users/samgoldman/projects/smart-contracts/nft-project/nft/node_modules/@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol": {
+      "lastModificationDate": 1640628993547,
       "contentHash": "c327b62ee5bcacfdd977bc3888fba3a4",
       "sourceName": "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol",
       "solcConfig": {
@@ -189,8 +307,8 @@
         "IERC721Receiver"
       ]
     },
-    "/Users/samgoldman/projects/smart-contracts/nft-project/ethereum/node_modules/@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol": {
-      "lastModificationDate": 1640624733307,
+    "/Users/samgoldman/projects/smart-contracts/nft-project/nft/node_modules/@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol": {
+      "lastModificationDate": 1640628993545,
       "contentHash": "a17d56fe0dfcceb68cd8a527b934b0ae",
       "sourceName": "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol",
       "solcConfig": {
@@ -226,8 +344,8 @@
         "IERC721Metadata"
       ]
     },
-    "/Users/samgoldman/projects/smart-contracts/nft-project/ethereum/node_modules/@openzeppelin/contracts/utils/Address.sol": {
-      "lastModificationDate": 1640624733310,
+    "/Users/samgoldman/projects/smart-contracts/nft-project/nft/node_modules/@openzeppelin/contracts/utils/Address.sol": {
+      "lastModificationDate": 1640628993135,
       "contentHash": "a8d6f1154bf88980c18dd20fb009967d",
       "sourceName": "@openzeppelin/contracts/utils/Address.sol",
       "solcConfig": {
@@ -261,8 +379,8 @@
         "Address"
       ]
     },
-    "/Users/samgoldman/projects/smart-contracts/nft-project/ethereum/node_modules/@openzeppelin/contracts/utils/Context.sol": {
-      "lastModificationDate": 1640624733311,
+    "/Users/samgoldman/projects/smart-contracts/nft-project/nft/node_modules/@openzeppelin/contracts/utils/Context.sol": {
+      "lastModificationDate": 1640628993191,
       "contentHash": "a06a83834de6f8eb27f6ed608d030ac2",
       "sourceName": "@openzeppelin/contracts/utils/Context.sol",
       "solcConfig": {
@@ -296,8 +414,8 @@
         "Context"
       ]
     },
-    "/Users/samgoldman/projects/smart-contracts/nft-project/ethereum/node_modules/@openzeppelin/contracts/utils/Strings.sol": {
-      "lastModificationDate": 1640624733312,
+    "/Users/samgoldman/projects/smart-contracts/nft-project/nft/node_modules/@openzeppelin/contracts/utils/Strings.sol": {
+      "lastModificationDate": 1640628993651,
       "contentHash": "babfde9e032d8044f461325c13ca07d7",
       "sourceName": "@openzeppelin/contracts/utils/Strings.sol",
       "solcConfig": {
@@ -331,8 +449,8 @@
         "Strings"
       ]
     },
-    "/Users/samgoldman/projects/smart-contracts/nft-project/ethereum/node_modules/@openzeppelin/contracts/utils/introspection/ERC165.sol": {
-      "lastModificationDate": 1640624733315,
+    "/Users/samgoldman/projects/smart-contracts/nft-project/nft/node_modules/@openzeppelin/contracts/utils/introspection/ERC165.sol": {
+      "lastModificationDate": 1640628993317,
       "contentHash": "31c485b4e552cc1bdeb99edb8303011e",
       "sourceName": "@openzeppelin/contracts/utils/introspection/ERC165.sol",
       "solcConfig": {
@@ -368,8 +486,8 @@
         "ERC165"
       ]
     },
-    "/Users/samgoldman/projects/smart-contracts/nft-project/ethereum/node_modules/@openzeppelin/contracts/utils/introspection/IERC165.sol": {
-      "lastModificationDate": 1640624733316,
+    "/Users/samgoldman/projects/smart-contracts/nft-project/nft/node_modules/@openzeppelin/contracts/utils/introspection/IERC165.sol": {
+      "lastModificationDate": 1640628993514,
       "contentHash": "caf880149ceb95d7355b976d61c278a8",
       "sourceName": "@openzeppelin/contracts/utils/introspection/IERC165.sol",
       "solcConfig": {
@@ -401,6 +519,78 @@
       ],
       "artifacts": [
         "IERC165"
+      ]
+    },
+    "/Users/samgoldman/projects/smart-contracts/nft-project/nft/node_modules/@openzeppelin/contracts/access/IAccessControl.sol": {
+      "lastModificationDate": 1640628993492,
+      "contentHash": "4b41bf9357608ab58d8f48c51c33c6ab",
+      "sourceName": "@openzeppelin/contracts/access/IAccessControl.sol",
+      "solcConfig": {
+        "version": "0.8.0",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "IAccessControl"
+      ]
+    },
+    "/Users/samgoldman/projects/smart-contracts/nft-project/nft/node_modules/@openzeppelin/contracts/access/Ownable.sol": {
+      "lastModificationDate": 1640628993580,
+      "contentHash": "cbba874af15bc1c65a1c82aebec1a0fe",
+      "sourceName": "@openzeppelin/contracts/access/Ownable.sol",
+      "solcConfig": {
+        "version": "0.8.0",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../utils/Context.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "Ownable"
       ]
     }
   }
