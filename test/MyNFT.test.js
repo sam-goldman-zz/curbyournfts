@@ -8,34 +8,53 @@ const { BN, expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
 // Load compiled artifacts
 const MyNFT = artifacts.require('MyNFT');
 
+const deploymentConfig = {
+  'MAX_PUBLIC': new BN('3000'),
+  'MAX_RESERVED': 1000,
+  'STARTING_RESERVED_ID': 2000,
+  'MAX_PER_ADDRESS': 5
+};
+
+const adminAddresses = [
+  "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+  "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
+  "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc"
+];
+
 // Start test block
 contract('MyNFT', function ([ owner, other ]) {
-  // Use large integers ('big numbers')
-  const value = new BN('42');
-  const maxPerAddress = new BN('3');
-  const maxPublic = new BN('3000');
-  const maxReserved = new BN('1000');
-  const startingReservedId = new BN('2000');
-  const adminAddresses = [
-    "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
-    "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
-    "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc"
-  ];
+  before('deploy contracts', async () => {
+    this.myNFT = await MyNFT.new(
+      deploymentConfig.MAX_PUBLIC,
+      deploymentConfig.MAX_RESERVED,
+      deploymentConfig.STARTING_RESERVED_ID,
+      deploymentConfig.MAX_PER_ADDRESS,
+      adminAddresses,
+    );
+  })
 
-  beforeEach(async function () {
-    this.myNFT = await MyNFT.new(maxPublic, maxReserved, startingReservedId, maxPerAddress, adminAddresses, { from: owner });
-  });
+  describe('constructor', () => {
+    it('verify deployment parameters', async () => {
+      expect(await this.myNFT.maxPublic()).to.be.bignumber.equal(deploymentConfig.MAX_PUBLIC);
+    });
+  })
 
-  it('retrieve returns a value previously stored', async function () {
-    await this.myNFT.store(value, { from: owner });
+  // const value = new BN('42');
+  // const maxPerAddress = new BN('3');
+  // const maxPublic = new BN('3000');
+  // const maxReserved = new BN('1000');
+  // const startingReservedId = new BN('2000');
 
-    // Use large integer comparisons
-    expect(await this.myNFT.retrieve()).to.be.bignumber.equal(value);
-  });
+  // beforeEach(async function () {
+  //   this.myNFT = await MyNFT.new(maxPublic, maxReserved, startingReservedId, maxPerAddress, adminAddresses, { from: owner });
+  // });
 
-  it('MAX_PER_ADDRESS equals 3', async function () {
-    expect(await this.myNFT.MAX_PER_ADDRESS()).to.be.bignumber.equal(maxPerAddress);
-  });
+  // it('retrieve returns a value previously stored', async function () {
+  //   await this.myNFT.store(value, { from: owner });
+
+  //   // Use large integer comparisons
+  //   expect(await this.myNFT.retrieve()).to.be.bignumber.equal(value);
+  // });
 
   // it('store emits an event', async function () {
   //   const receipt = await this.myNFT.store(value, { from: owner });
