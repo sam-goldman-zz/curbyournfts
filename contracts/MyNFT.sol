@@ -30,7 +30,7 @@ contract MyNFT is
         uint256 _startingReservedId,
         uint256 _maxPerAddress,
         address[] memory _adminAddresses
-    ) ERC721("Tunes", "TUNE") {
+    ) ERC721("MyNFT", "NFT") {
         maxPublic = _maxPublic;
         maxReserved = _maxReserved;
         startingReservedId = _startingReservedId;

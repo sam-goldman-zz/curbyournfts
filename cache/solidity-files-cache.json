@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/samgoldman/projects/smart-contracts/nft-project/nft/contracts/MyNFT.sol": {
-      "lastModificationDate": 1641234851477,
-      "contentHash": "a554d813d5abedc14fbc566c62bf0611",
+      "lastModificationDate": 1641338362079,
+      "contentHash": "b705fa88e64aa834774878a6ece11e83",
       "sourceName": "contracts/MyNFT.sol",
       "solcConfig": {
         "version": "0.8.0",
@@ -590,6 +590,41 @@
       ],
       "artifacts": [
         "Ownable"
+      ]
+    },
+    "/Users/samgoldman/projects/smart-contracts/nft-project/nft/node_modules/hardhat/console.sol": {
+      "lastModificationDate": 1640628994372,
+      "contentHash": "cc4777addd464ea56fa35b1c45df0591",
+      "sourceName": "hardhat/console.sol",
+      "solcConfig": {
+        "version": "0.8.0",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.4.22 <0.9.0"
+      ],
+      "artifacts": [
+        "console"
       ]
     }
   }

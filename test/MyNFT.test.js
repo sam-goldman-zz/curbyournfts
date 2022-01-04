@@ -10,9 +10,9 @@ const MyNFT = artifacts.require('MyNFT');
 
 const deploymentConfig = {
   'MAX_PUBLIC': new BN('3000'),
-  'MAX_RESERVED': 1000,
-  'STARTING_RESERVED_ID': 2000,
-  'MAX_PER_ADDRESS': 5
+  'MAX_RESERVED': new BN('1000'),
+  'STARTING_RESERVED_ID': new BN('2000'),
+  'MAX_PER_ADDRESS': new BN('5')
 };
 
 const adminAddresses = [
@@ -31,11 +31,20 @@ contract('MyNFT', function ([ owner, other ]) {
       deploymentConfig.MAX_PER_ADDRESS,
       adminAddresses,
     );
-  })
+  });
 
   describe('constructor', () => {
     it('verify deployment parameters', async () => {
+
+      // const maxPublic = await this.myNFT.maxPublic()
+      // assert.equal(+maxPublic, deploymentConfig.MAX_PUBLIC)
       expect(await this.myNFT.maxPublic()).to.be.bignumber.equal(deploymentConfig.MAX_PUBLIC);
+
+      expect(await this.myNFT.maxReserved()).to.be.bignumber.equal(deploymentConfig.MAX_RESERVED);
+
+      expect(await this.myNFT.startingReservedId()).to.be.bignumber.equal(deploymentConfig.STARTING_RESERVED_ID);
+
+      expect(await this.myNFT.maxPerAddress()).to.be.bignumber.equal(deploymentConfig.MAX_PER_ADDRESS);
     });
   })
 
