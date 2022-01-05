@@ -11,30 +11,26 @@ contract MyNFT is
     ERC721Burnable,
     AccessControl
 {
-    uint256 public immutable maxPublic;
-    uint256 public immutable maxReserved;
-    uint256 public immutable startingReservedId;
-    uint256 public immutable maxPerAddress;
+    using Counters for Counters.Counter;
 
-    mapping(address => uint256) private _mintedList;
+    Counters.Counter private _publicTokenIdTracker;
+    Counters.Counter private _reservedTokenIdTracker;
 
-    uint256 public totalReservedSupply;
-    uint256 public totalPublicSupply;
+    uint256 public constant MAX_PUBLIC = 4000;
+    uint256 public constant MAX_RESERVED = 1000;
+    uint256 public constant MAX_PER_PUBLIC_ADDRESS = 5;
+
     uint256 public temporaryPublicMax;
 
     bytes32 public constant MINTER_ROLE = keccak256("ADMIN_ROLE");
 
     constructor(
-        uint256 _maxPublic,
-        uint256 _maxReserved,
-        uint256 _startingReservedId,
-        uint256 _maxPerAddress,
+        string memory name,
+        string memory symbol,
+        uint256 _temporaryPublicMax,
         address[] memory _adminAddresses
-    ) ERC721("MyNFT", "NFT") {
-        maxPublic = _maxPublic;
-        maxReserved = _maxReserved;
-        startingReservedId = _startingReservedId;
-        maxPerAddress = _maxPerAddress;
+    ) ERC721(name, symbol) {
+        temporaryPublicMax = _temporaryPublicMax;
 
         for(uint256 i = 0; i < _adminAddresses.length; i++) {
             require(_adminAddresses[i] != address(0), "Can't add the null address");
@@ -43,44 +39,30 @@ contract MyNFT is
     }
 
     function totalSupply() public view returns (uint256) {
-        return totalReservedSupply + totalPublicSupply;
+        return _reservedTokenIdTracker.current() + _publicTokenIdTracker.current();
     }
 
     function setTemporaryPublicMax(uint256 _temporaryPublicMax) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(_temporaryPublicMax <= maxPublic, "You cannot set the temporary max above the absolute total.");
+        require(_temporaryPublicMax <= MAX_PUBLIC, "You cannot set the temporary max above the absolute total.");
         temporaryPublicMax = _temporaryPublicMax;
     }
 
-    function mintReserved(uint256[] calldata tokenIds) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(totalReservedSupply + tokenIds.length <= maxReserved, "This would exceed the total number of reserved NFTs.");
+    function mintReserved(uint256 numTokens) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_reservedTokenIdTracker.current() + numTokens <= MAX_RESERVED, "This would exceed the total number of reserved NFTs.");
 
-        for(uint256 i = 0; i < tokenIds.length; i++) {
-          uint256 tokenId = tokenIds[i];
-          require(tokenId >= startingReservedId && tokenId < startingReservedId + maxReserved, "Token ID is not in the reserve range.");
-
-          totalReservedSupply += 1;
-
-          _safeMint(msg.sender, tokenId);
+        for (uint256 i = 0; i < numTokens; i++) {
+            _reservedTokenIdTracker.increment();
+            _safeMint(msg.sender, _reservedTokenIdTracker.current() + MAX_PUBLIC);
         }
     }
 
-    // TODO: change _mintedList to Counter
     function mintPublic() public {
-        require(_mintedList[msg.sender] < maxPerAddress, "You have reached your minting limit.");
-        require(totalPublicSupply < maxPublic, "There are no more NFTs for public minting.");
-        require(totalPublicSupply < temporaryPublicMax, "There are no more NFTs for public minting at this time.");
+        require(balanceOf(msg.sender) < MAX_PER_PUBLIC_ADDRESS, "You have reached your minting limit.");
+        require(_publicTokenIdTracker.current() < MAX_PUBLIC, "There are no more NFTs for public minting.");
+        require(_publicTokenIdTracker.current() < temporaryPublicMax, "There are no more NFTs for public minting at this time.");
         
-        _mintedList[msg.sender] += 1;
-        
-        uint256 tokenId = totalPublicSupply + 1;
-        
-        // Skip the reserved block
-        if (tokenId >= startingReservedId) {
-            tokenId += maxReserved;
-        }
-        
-        totalPublicSupply += 1;
-        _safeMint(msg.sender, tokenId);
+        _publicTokenIdTracker.increment();
+        _safeMint(msg.sender, _publicTokenIdTracker.current());
     }
 
     function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {

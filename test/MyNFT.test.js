@@ -8,6 +8,8 @@ const { BN, expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
 // Load compiled artifacts
 const MyNFT = artifacts.require('MyNFT');
 
+const _0 = new BN('0');
+
 const deploymentConfig = {
   'MAX_PUBLIC': new BN('3000'),
   'MAX_RESERVED': new BN('1000'),
@@ -35,9 +37,6 @@ contract('MyNFT', function ([ owner, other ]) {
 
   describe('constructor', () => {
     it('verify deployment parameters', async () => {
-
-      // const maxPublic = await this.myNFT.maxPublic()
-      // assert.equal(+maxPublic, deploymentConfig.MAX_PUBLIC)
       expect(await this.myNFT.maxPublic()).to.be.bignumber.equal(deploymentConfig.MAX_PUBLIC);
 
       expect(await this.myNFT.maxReserved()).to.be.bignumber.equal(deploymentConfig.MAX_RESERVED);
@@ -45,6 +44,12 @@ contract('MyNFT', function ([ owner, other ]) {
       expect(await this.myNFT.startingReservedId()).to.be.bignumber.equal(deploymentConfig.STARTING_RESERVED_ID);
 
       expect(await this.myNFT.maxPerAddress()).to.be.bignumber.equal(deploymentConfig.MAX_PER_ADDRESS);
+
+      expect(await this.myNFT.totalReservedSupply()).to.be.bignumber.equal(_0);
+      
+      expect(await this.myNFT.totalPublicSupply()).to.be.bignumber.equal(_0);
+      
+      expect(await this.myNFT.temporaryPublicMax()).to.be.bignumber.equal(_0);
     });
   })
 
