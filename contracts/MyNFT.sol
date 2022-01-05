@@ -20,20 +20,19 @@ contract MyNFT is
     uint256 public constant MAX_RESERVED = 1000;
     uint256 public constant MAX_PER_PUBLIC_ADDRESS = 5;
 
-    uint256 public temporaryPublicMax;
-
-    bytes32 public constant MINTER_ROLE = keccak256("ADMIN_ROLE");
+    uint256 public temporaryMaxPublic;
 
     constructor(
-        string memory name,
-        string memory symbol,
-        uint256 _temporaryPublicMax,
+        uint256 _temporaryMaxPublic,
         address[] memory _adminAddresses
-    ) ERC721(name, symbol) {
-        temporaryPublicMax = _temporaryPublicMax;
+    ) ERC721("MyNFT", "NFT") {
+        require(_temporaryMaxPublic <= MAX_PUBLIC, "_temporaryMaxPublic cannot be greater than maximum value");
+        require(_adminAddresses.length > 0, "_adminAddresses length cannot be zero");
 
-        for(uint256 i = 0; i < _adminAddresses.length; i++) {
-            require(_adminAddresses[i] != address(0), "Can't add the null address");
+        temporaryMaxPublic = _temporaryMaxPublic;
+
+        for (uint256 i = 0; i < _adminAddresses.length; i++) {
+            require(_adminAddresses[i] != address(0), "admin cannot be zero address");
             _setupRole(DEFAULT_ADMIN_ROLE, _adminAddresses[i]);
         }
     }
@@ -42,13 +41,14 @@ contract MyNFT is
         return _reservedTokenIdTracker.current() + _publicTokenIdTracker.current();
     }
 
-    function setTemporaryPublicMax(uint256 _temporaryPublicMax) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(_temporaryPublicMax <= MAX_PUBLIC, "You cannot set the temporary max above the absolute total.");
-        temporaryPublicMax = _temporaryPublicMax;
+    function setTemporaryMaxPublic(uint256 _temporaryMaxPublic) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_temporaryMaxPublic <= MAX_PUBLIC, "_temporaryMaxPublic cannot exceed max public value");
+        temporaryMaxPublic = _temporaryMaxPublic;
     }
 
     function mintReserved(uint256 numTokens) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(_reservedTokenIdTracker.current() + numTokens <= MAX_RESERVED, "This would exceed the total number of reserved NFTs.");
+        require(numTokens > 0, "numTokens cannot be zero");
+        require(_reservedTokenIdTracker.current() + numTokens <= MAX_RESERVED, "number of tokens requested exceeds number reserved");
 
         for (uint256 i = 0; i < numTokens; i++) {
             _reservedTokenIdTracker.increment();
@@ -57,9 +57,9 @@ contract MyNFT is
     }
 
     function mintPublic() public {
-        require(balanceOf(msg.sender) < MAX_PER_PUBLIC_ADDRESS, "You have reached your minting limit.");
-        require(_publicTokenIdTracker.current() < MAX_PUBLIC, "There are no more NFTs for public minting.");
-        require(_publicTokenIdTracker.current() < temporaryPublicMax, "There are no more NFTs for public minting at this time.");
+        require(balanceOf(msg.sender) < MAX_PER_PUBLIC_ADDRESS, "sender cannot mint any more tokens");
+        require(_publicTokenIdTracker.current() < MAX_PUBLIC, "there are no more public tokens to mint");
+        require(_publicTokenIdTracker.current() < temporaryMaxPublic, "there are currently no more public tokens to mint. check back later");
         
         _publicTokenIdTracker.increment();
         _safeMint(msg.sender, _publicTokenIdTracker.current());
