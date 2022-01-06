@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/samgoldman/projects/smart-contracts/nft-project/nft/contracts/MyNFT.sol": {
-      "lastModificationDate": 1641339129958,
-      "contentHash": "ce5accffd8bc18c82e41b06ae313d8cc",
+      "lastModificationDate": 1641426065279,
+      "contentHash": "5544cb5aa5b32eee0d50736a633d1bd4",
       "sourceName": "contracts/MyNFT.sol",
       "solcConfig": {
         "version": "0.8.0",

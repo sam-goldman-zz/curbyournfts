@@ -3,55 +3,109 @@
 const { expect } = require('chai');
 
 // Import utilities from Test Helpers
-const { BN, expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
+const { BN, expectEvent, expectRevert, constants } = require('@openzeppelin/test-helpers');
 
 // Load compiled artifacts
 const MyNFT = artifacts.require('MyNFT');
 
-const _0 = new BN('0');
-
-const deploymentConfig = {
-  'MAX_PUBLIC': new BN('3000'),
-  'MAX_RESERVED': new BN('1000'),
-  'STARTING_RESERVED_ID': new BN('2000'),
-  'MAX_PER_ADDRESS': new BN('5')
+const revertMessages = {
+  TmpPublicExceedsMaxPublic: "_temporaryMaxPublic cannot be greater than max public value",
+  AdminAddressesLengthIsZero: "_adminAddresses length cannot be zero",
+  AdminCannotBeZeroAddress: "admin cannot be zero address"
 };
 
+const _0 = new BN('0');
+const _1 = new BN('1');
+
+const DEFAULT_ADMIN_ROLE = constants.ZERO_BYTES32;
+
+const temporaryMaxPublic = new BN('3000');
 const adminAddresses = [
   "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
   "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
   "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc"
 ];
 
+const tokenName = "MyNFT";
+const tokenSymbol = "NFT";
+
 // Start test block
 contract('MyNFT', function ([ owner, other ]) {
+
   before('deploy contracts', async () => {
     this.myNFT = await MyNFT.new(
-      deploymentConfig.MAX_PUBLIC,
-      deploymentConfig.MAX_RESERVED,
-      deploymentConfig.STARTING_RESERVED_ID,
-      deploymentConfig.MAX_PER_ADDRESS,
-      adminAddresses,
+      temporaryMaxPublic,
+      adminAddresses
     );
   });
 
   describe('constructor', () => {
     it('verify deployment parameters', async () => {
-      expect(await this.myNFT.maxPublic()).to.be.bignumber.equal(deploymentConfig.MAX_PUBLIC);
+      expect(await this.myNFT.temporaryMaxPublic()).to.be.bignumber.equal(temporaryMaxPublic);
 
-      expect(await this.myNFT.maxReserved()).to.be.bignumber.equal(deploymentConfig.MAX_RESERVED);
+      for (let adminAddress of adminAddresses) {
+        expect(await this.myNFT.hasRole(DEFAULT_ADMIN_ROLE, adminAddress)).to.equal(true);
+      };
 
-      expect(await this.myNFT.startingReservedId()).to.be.bignumber.equal(deploymentConfig.STARTING_RESERVED_ID);
+      expect(await this.myNFT.name()).to.equal(tokenName);
 
-      expect(await this.myNFT.maxPerAddress()).to.be.bignumber.equal(deploymentConfig.MAX_PER_ADDRESS);
-
-      expect(await this.myNFT.totalReservedSupply()).to.be.bignumber.equal(_0);
-      
-      expect(await this.myNFT.totalPublicSupply()).to.be.bignumber.equal(_0);
-      
-      expect(await this.myNFT.temporaryPublicMax()).to.be.bignumber.equal(_0);
+      expect(await this.myNFT.symbol()).to.equal(tokenSymbol);
     });
+
+    it('require fail - temporary public value exceeds max public value', async () => {
+      const maxPublic = await this.myNFT.MAX_PUBLIC();
+      await expectRevert(
+        MyNFT.new(
+          maxPublic + 1,
+          adminAddresses
+        ),
+        revertMessages.TmpPublicExceedsMaxPublic
+      );
+
+      // still works with 1 less
+      this.myNFTTemp = await MyNFT.new(
+        maxPublic,
+        adminAddresses
+      );
+
+      expect(await this.myNFTTemp.temporaryMaxPublic()).to.be.bignumber.equal(maxPublic);
+    });
+
+    it('require fail - admin addresses length is zero', async () => {
+      await expectRevert(
+        MyNFT.new(
+          temporaryMaxPublic,
+          []
+        ),
+        revertMessages.AdminAddressesLengthIsZero
+      );
+
+      // still works with length of 1
+      this.myNFTTemp = await MyNFT.new(
+        temporaryMaxPublic,
+        [adminAddresses[0]]
+      );
+      expect(await this.myNFTTemp.temporaryMaxPublic()).to.be.bignumber.equal(temporaryMaxPublic);
+    })
+
+    it('require fail - admin cannot be zero address', async () => {
+      await expectRevert(
+        MyNFT.new(
+          temporaryMaxPublic,
+          [constants.ZERO_ADDRESS]
+        ),
+        revertMessages.AdminCannotBeZeroAddress
+      );
+    })
   })
+
+    // it('non owner cannot store a value', async function () {
+  //   // Test a transaction reverts
+  //   await expectRevert(
+  //     this.myNFT.store(value, { from: other }),
+  //     'Ownable: caller is not the owner',
+  //   );
+  // });
 
   // const value = new BN('42');
   // const maxPerAddress = new BN('3');
@@ -75,13 +129,5 @@ contract('MyNFT', function ([ owner, other ]) {
 
   //   // Test that a ValueChanged event was emitted with the new value
   //   expectEvent(receipt, 'ValueChanged', { value: value });
-  // });
-
-  // it('non owner cannot store a value', async function () {
-  //   // Test a transaction reverts
-  //   await expectRevert(
-  //     this.myNFT.store(value, { from: other }),
-  //     'Ownable: caller is not the owner',
-  //   );
   // });
 });

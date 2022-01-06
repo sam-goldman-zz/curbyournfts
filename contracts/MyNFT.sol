@@ -26,7 +26,7 @@ contract MyNFT is
         uint256 _temporaryMaxPublic,
         address[] memory _adminAddresses
     ) ERC721("MyNFT", "NFT") {
-        require(_temporaryMaxPublic <= MAX_PUBLIC, "_temporaryMaxPublic cannot be greater than maximum value");
+        require(_temporaryMaxPublic <= MAX_PUBLIC, "_temporaryMaxPublic cannot be greater than max public value");
         require(_adminAddresses.length > 0, "_adminAddresses length cannot be zero");
 
         temporaryMaxPublic = _temporaryMaxPublic;
