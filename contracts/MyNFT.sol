@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "hardhat/console.sol";
+
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
@@ -33,22 +35,13 @@ contract MyNFT is
 
         for (uint256 i = 0; i < _adminAddresses.length; i++) {
             require(_adminAddresses[i] != address(0), "admin cannot be zero address");
-            _setupRole(DEFAULT_ADMIN_ROLE, _adminAddresses[i]);
+            _grantRole(DEFAULT_ADMIN_ROLE, _adminAddresses[i]);
         }
-    }
-
-    function totalSupply() public view returns (uint256) {
-        return _reservedTokenIdTracker.current() + _publicTokenIdTracker.current();
-    }
-
-    function setTemporaryMaxPublic(uint256 _temporaryMaxPublic) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(_temporaryMaxPublic <= MAX_PUBLIC, "_temporaryMaxPublic cannot exceed max public value");
-        temporaryMaxPublic = _temporaryMaxPublic;
     }
 
     function mintReserved(uint256 numTokens) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(numTokens > 0, "numTokens cannot be zero");
-        require(_reservedTokenIdTracker.current() + numTokens <= MAX_RESERVED, "number of tokens requested exceeds number reserved");
+        require(_reservedTokenIdTracker.current() + numTokens <= MAX_RESERVED, "number of tokens requested exceeds max reserved");
 
         for (uint256 i = 0; i < numTokens; i++) {
             _reservedTokenIdTracker.increment();
@@ -63,6 +56,15 @@ contract MyNFT is
         
         _publicTokenIdTracker.increment();
         _safeMint(msg.sender, _publicTokenIdTracker.current());
+    }
+
+    function totalSupply() public view returns (uint256) {
+        return _reservedTokenIdTracker.current() + _publicTokenIdTracker.current();
+    }
+
+    function setTemporaryMaxPublic(uint256 _temporaryMaxPublic) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_temporaryMaxPublic <= MAX_PUBLIC, "_temporaryMaxPublic cannot exceed max public value");
+        temporaryMaxPublic = _temporaryMaxPublic;
     }
 
     function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
