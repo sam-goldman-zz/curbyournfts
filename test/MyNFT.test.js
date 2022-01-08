@@ -57,6 +57,8 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin ]) {
 
   describe('constructor', () => {
     it('verify deployment parameters', async () => {
+      expect (await this.myNFT.totalSupply()).to.be.bignumber.equal(_0);
+
       expect(await this.myNFT.temporaryMaxPublic()).to.be.bignumber.equal(temporaryMaxPublic);
 
       for (let adminAddress of adminAddresses) {
@@ -122,6 +124,8 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin ]) {
     });
 
     it('happy case', async () => {
+      expect(await this.myNFT.totalSupply()).to.be.bignumber.equal(_2);
+
       expect(await this.myNFT.balanceOf(admin1)).to.be.bignumber.equal(numReservedTokens);
       
       expect(await this.myNFT.ownerOf(maxPublic.add(_1))).to.equal(admin1);
@@ -152,7 +156,7 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin ]) {
       expect(await this.myNFT.balanceOf(admin1)).to.be.bignumber.equal(maxReserved);
     })
 
-    it("check modifier - non-admin cannot mint reserved tokens", async () => {
+    it('check modifier - non-admin cannot mint reserved tokens', async () => {
       const revertMessageAccessControl = `AccessControl: account ${nonAdmin.toLowerCase()} is missing role ${ZERO_ADDRESS}`;
 
       await expectRevert(
