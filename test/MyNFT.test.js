@@ -39,6 +39,18 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin1, nonAdmin2, ...o
 
   const adminAddresses = [admin1, admin2, admin3];
 
+  function getRevertMessageAccessControl(address) {
+    return `AccessControl: account ${address.toLowerCase()} is missing role ${ZERO_ADDRESS}`;
+  }
+
+  // uses non-admin accounts
+  async function mintPublicTokens(numTokens) {
+    for (let i = 0; i < numTokens; i++) {
+      address = otherAccounts[i];
+      await this.myNFT.mintPublic({ from: address });
+    }
+  }
+
   before('deploy contracts', async () => {
     this.myNFT = await MyNFT.new(
       temporaryMaxPublic,
@@ -160,7 +172,7 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin1, nonAdmin2, ...o
     })
 
     it('check modifier - non-admin cannot mint reserved tokens', async () => {
-      const revertMessageAccessControl = `AccessControl: account ${nonAdmin1.toLowerCase()} is missing role ${ZERO_ADDRESS}`;
+      const revertMessageAccessControl = getRevertMessageAccessControl(nonAdmin1);
 
       await expectRevert(
         this.myNFT.mintReserved(1, { from: nonAdmin1 }),
@@ -197,10 +209,7 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin1, nonAdmin2, ...o
     it('require fail - maximum number of public tokens minted', async () => {
       await this.myNFT.setTemporaryMaxPublic(maxPublic, { from: admin1 });
 
-      for (let i = 0; i < maxPublic; i++) {
-        address = otherAccounts[i];
-        await this.myNFT.mintPublic({ from: address });
-      }
+      await mintPublicTokens(maxPublic);
 
       await expectRevert(
         this.myNFT.mintPublic({ from: nonAdmin1 }),
@@ -209,11 +218,7 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin1, nonAdmin2, ...o
     });
 
     it('require fail - number of public tokens minted exceeds temporary max public value', async () => {
-      // TODO: DRY w/ above
-      for (let i = 0; i < temporaryMaxPublic; i++) {
-        address = otherAccounts[i];
-        await this.myNFT.mintPublic({ from: address });
-      }
+      await mintPublicTokens(temporaryMaxPublic);
 
       await expectRevert(
         this.myNFT.mintPublic({ from: nonAdmin1 }),
@@ -241,9 +246,10 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin1, nonAdmin2, ...o
       expect(await this.myNFT.temporaryMaxPublic()).to.be.bignumber.equal(maxPublic)
     })
 
-    it('check modifier - non-admin cannot set temporaryMaxPublic', async () => {
-      // TODO: dry
-      const revertMessageAccessControl = `AccessControl: account ${nonAdmin1.toLowerCase()} is missing role ${ZERO_ADDRESS}`;
+    it('check modifier - non-admin cannot set new temporaryMaxPublic', async () => {
+      const revertMessageAccessControl = getRevertMessageAccessControl(nonAdmin1);
+
+      getRevertMessageAccessControl(address);
 
       await expectRevert(
         this.myNFT.setTemporaryMaxPublic(maxPublic, { from: nonAdmin1 }),

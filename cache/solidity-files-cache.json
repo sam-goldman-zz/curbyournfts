@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/samgoldman/projects/smart-contracts/nft-project/nft/contracts/MyNFT.sol": {
-      "lastModificationDate": 1641666071682,
-      "contentHash": "a117b8de6ff9f8f3923e9b8f0db0f21a",
+      "lastModificationDate": 1641669929343,
+      "contentHash": "c305a090373a322d261db9d11212cb0a",
       "sourceName": "contracts/MyNFT.sol",
       "solcConfig": {
         "version": "0.8.0",
@@ -33,6 +33,7 @@
         "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol",
         "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol",
         "@openzeppelin/contracts/access/AccessControl.sol",
+        "@openzeppelin/contracts/access/Ownable.sol",
         "@openzeppelin/contracts/utils/Counters.sol"
       ],
       "versionPragmas": [

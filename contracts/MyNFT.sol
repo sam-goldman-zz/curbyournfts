@@ -6,12 +6,14 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
 contract MyNFT is 
     ERC721URIStorage,
     ERC721Burnable,
-    AccessControl
+    AccessControl,
+    Ownable
 {
     using Counters for Counters.Counter;
 
@@ -76,8 +78,6 @@ contract MyNFT is
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(AccessControl, ERC721) returns (bool) {
-        return
-            ERC721.supportsInterface(interfaceId) ||
-            AccessControl.supportsInterface(interfaceId);
+        return super.supportsInterface(interfaceId);
     }
 }
