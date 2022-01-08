@@ -16,7 +16,8 @@ const revertMessages = {
   NumTokensCannotBeZero: "numTokens cannot be zero",
   NumReservedTokensExceedsMax: "number of tokens requested exceeds max reserved",
   AddressReachedPublicMintingLimit: "this address has reached its minting limit",
-  MaxNumberPublicTokensMinted: "maximum number of public tokens have been minted"
+  MaxNumberPublicTokensMinted: "maximum number of public tokens have been minted",
+  PublicTokensExceedsTmpMax: "there are currently no more public tokens to mint"
 };
 
 const _0 = new BN('0');
@@ -25,7 +26,7 @@ const _2 = new BN('2');
 
 const DEFAULT_ADMIN_ROLE = constants.ZERO_BYTES32;
 
-const temporaryMaxPublic = new BN('3000');
+const temporaryMaxPublic = new BN('30');
 
 const tokenName = "MyNFT";
 const tokenSymbol = "NFT";
@@ -167,7 +168,6 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin1, nonAdmin2, ...o
     })
   })
 
-  // require fail: call mintPublic temporaryMaxPublic - 1 times. then expectrevert on the next call.
   describe('mintPublic', () => {
     it('happy case', async () => {
       await this.myNFT.mintPublic({ from: nonAdmin1 });
@@ -193,8 +193,7 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin1, nonAdmin2, ...o
       );
     })
 
-    // require fail: set temporaryMaxPublic = MAX_PUBLIC. then call mintPublic MAX_PUBLIC times. then expectrevert on the MAX_PUBLIC time.
-    it.only('require fail - maximum number of public tokens minted', async () => {
+    it('require fail - maximum number of public tokens minted', async () => {
       await this.myNFT.setTemporaryMaxPublic(maxPublic, { from: admin1 });
 
       for (let i = 0; i < maxPublic; i++) {
@@ -204,9 +203,21 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin1, nonAdmin2, ...o
 
       await expectRevert(
         this.myNFT.mintPublic({ from: nonAdmin1 }),
-        MaxNumberPublicTokensMinted
+        revertMessages.MaxNumberPublicTokensMinted
       );
     });
+
+    it('require fail - number of public tokens minted exceeds temporary max public value', async () => {
+      for (let i = 0; i < temporaryMaxPublic; i++) {
+        address = otherAccounts[i];
+        await this.myNFT.mintPublic({ from: address });
+      }
+
+      await expectRevert(
+        this.myNFT.mintPublic({ from: nonAdmin1 }),
+        revertMessages.PublicTokensExceedsTmpMax
+      );
+    })
   })
 
   // it('store emits an event', async function () {

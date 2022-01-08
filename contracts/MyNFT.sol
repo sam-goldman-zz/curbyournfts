@@ -18,9 +18,9 @@ contract MyNFT is
     Counters.Counter private _publicTokenIdTracker;
     Counters.Counter private _reservedTokenIdTracker;
 
-    uint256 public constant MAX_PUBLIC = 4000;
-    uint256 public constant MAX_RESERVED = 1000;
-    uint256 public constant MAX_PER_PUBLIC_ADDRESS = 5;
+    uint256 public constant MAX_PUBLIC = 40;
+    uint256 public constant MAX_RESERVED = 10;
+    uint256 public constant MAX_PER_PUBLIC_ADDRESS = 3;
 
     uint256 public temporaryMaxPublic;
 
@@ -52,7 +52,7 @@ contract MyNFT is
     function mintPublic() public {
         require(balanceOf(msg.sender) < MAX_PER_PUBLIC_ADDRESS, "this address has reached its minting limit");
         require(_publicTokenIdTracker.current() < MAX_PUBLIC, "maximum number of public tokens have been minted");
-        require(_publicTokenIdTracker.current() < temporaryMaxPublic, "there are currently no more public tokens to mint. check back later");
+        require(_publicTokenIdTracker.current() < temporaryMaxPublic, "there are currently no more public tokens to mint");
         
         _publicTokenIdTracker.increment();
         _safeMint(msg.sender, _publicTokenIdTracker.current());
