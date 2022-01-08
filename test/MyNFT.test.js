@@ -4,7 +4,6 @@ const { expect } = require('chai');
 
 // Import utilities from Test Helpers
 const { BN, expectEvent, expectRevert, constants, snapshot } = require('@openzeppelin/test-helpers');
-const { unspecified } = require('@openzeppelin/test-helpers/src/expectRevert');
 const { ZERO_ADDRESS } = require('@openzeppelin/test-helpers/src/constants');
 
 // Load compiled artifacts
@@ -15,7 +14,9 @@ const revertMessages = {
   AdminAddressesLengthIsZero: "_adminAddresses length cannot be zero",
   AdminCannotBeZeroAddress: "admin cannot be zero address",
   NumTokensCannotBeZero: "numTokens cannot be zero",
-  NumReservedTokensExceedsMax: "number of tokens requested exceeds max reserved"
+  NumReservedTokensExceedsMax: "number of tokens requested exceeds max reserved",
+  AddressReachedPublicMintingLimit: "this address has reached its minting limit",
+  MaxNumberPublicTokensMinted: "maximum number of public tokens have been minted"
 };
 
 const _0 = new BN('0');
@@ -30,8 +31,7 @@ const tokenName = "MyNFT";
 const tokenSymbol = "NFT";
 
 // Start test block
-contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin ]) {
-
+contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin1, nonAdmin2, ...otherAccounts]) {
   let snapshotA;
   let maxPublic;
 
@@ -45,6 +45,7 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin ]) {
 
     maxPublic = await this.myNFT.MAX_PUBLIC();
     maxReserved = await this.myNFT.MAX_RESERVED();
+    maxPerPublicAddress = await this.myNFT.MAX_PER_PUBLIC_ADDRESS();
   });
 
   beforeEach(async () => {
@@ -124,7 +125,7 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin ]) {
     });
 
     it('happy case', async () => {
-      expect(await this.myNFT.totalSupply()).to.be.bignumber.equal(_2);
+      expect(await this.myNFT.totalSupply()).to.be.bignumber.equal(numReservedTokens);
 
       expect(await this.myNFT.balanceOf(admin1)).to.be.bignumber.equal(numReservedTokens);
       
@@ -157,13 +158,55 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin ]) {
     })
 
     it('check modifier - non-admin cannot mint reserved tokens', async () => {
-      const revertMessageAccessControl = `AccessControl: account ${nonAdmin.toLowerCase()} is missing role ${ZERO_ADDRESS}`;
+      const revertMessageAccessControl = `AccessControl: account ${nonAdmin1.toLowerCase()} is missing role ${ZERO_ADDRESS}`;
 
       await expectRevert(
-        this.myNFT.mintReserved(1, { from: nonAdmin }),
+        this.myNFT.mintReserved(1, { from: nonAdmin1 }),
         revertMessageAccessControl
       );
     })
+  })
+
+  // require fail: call mintPublic temporaryMaxPublic - 1 times. then expectrevert on the next call.
+  describe('mintPublic', () => {
+    it('happy case', async () => {
+      await this.myNFT.mintPublic({ from: nonAdmin1 });
+      await this.myNFT.mintPublic({ from: nonAdmin2 });
+
+      expect(await this.myNFT.totalSupply()).to.be.bignumber.equal(_2);
+
+      expect(await this.myNFT.balanceOf(nonAdmin1)).to.be.bignumber.equal(_1);
+      expect(await this.myNFT.balanceOf(nonAdmin2)).to.be.bignumber.equal(_1);
+
+      expect(await this.myNFT.ownerOf(_1)).to.equal(nonAdmin1);
+      expect(await this.myNFT.ownerOf(_2)).to.equal(nonAdmin2);
+    })
+
+    it('require fail - address has reached public minting limit', async () => {
+      for (let i = 0; i < maxPerPublicAddress; i++) {
+        await this.myNFT.mintPublic({ from: nonAdmin1 });
+      }
+
+      await expectRevert(
+        this.myNFT.mintPublic({ from: nonAdmin1 }),
+        revertMessages.AddressReachedPublicMintingLimit
+      );
+    })
+
+    // require fail: set temporaryMaxPublic = MAX_PUBLIC. then call mintPublic MAX_PUBLIC times. then expectrevert on the MAX_PUBLIC time.
+    it.only('require fail - maximum number of public tokens minted', async () => {
+      await this.myNFT.setTemporaryMaxPublic(maxPublic, { from: admin1 });
+
+      for (let i = 0; i < maxPublic; i++) {
+        address = otherAccounts[i];
+        await this.myNFT.mintPublic({ from: address });
+      }
+
+      await expectRevert(
+        this.myNFT.mintPublic({ from: nonAdmin1 }),
+        MaxNumberPublicTokensMinted
+      );
+    });
   })
 
   // it('store emits an event', async function () {

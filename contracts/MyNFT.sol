@@ -50,8 +50,8 @@ contract MyNFT is
     }
 
     function mintPublic() public {
-        require(balanceOf(msg.sender) < MAX_PER_PUBLIC_ADDRESS, "sender cannot mint any more tokens");
-        require(_publicTokenIdTracker.current() < MAX_PUBLIC, "there are no more public tokens to mint");
+        require(balanceOf(msg.sender) < MAX_PER_PUBLIC_ADDRESS, "this address has reached its minting limit");
+        require(_publicTokenIdTracker.current() < MAX_PUBLIC, "maximum number of public tokens have been minted");
         require(_publicTokenIdTracker.current() < temporaryMaxPublic, "there are currently no more public tokens to mint. check back later");
         
         _publicTokenIdTracker.increment();
