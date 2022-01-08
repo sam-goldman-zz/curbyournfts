@@ -17,7 +17,8 @@ const revertMessages = {
   NumReservedTokensExceedsMax: "number of tokens requested exceeds max reserved",
   AddressReachedPublicMintingLimit: "this address has reached its minting limit",
   MaxNumberPublicTokensMinted: "maximum number of public tokens have been minted",
-  PublicTokensExceedsTmpMax: "there are currently no more public tokens to mint"
+  PublicTokensExceedsTmpMax: "there are currently no more public tokens to mint",
+  NewTmpMaxExceedsMaxPublic: "cannot change temporary public value to exceed max value"
 };
 
 const _0 = new BN('0');
@@ -208,6 +209,7 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin1, nonAdmin2, ...o
     });
 
     it('require fail - number of public tokens minted exceeds temporary max public value', async () => {
+      // TODO: DRY w/ above
       for (let i = 0; i < temporaryMaxPublic; i++) {
         address = otherAccounts[i];
         await this.myNFT.mintPublic({ from: address });
@@ -216,6 +218,36 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin1, nonAdmin2, ...o
       await expectRevert(
         this.myNFT.mintPublic({ from: nonAdmin1 }),
         revertMessages.PublicTokensExceedsTmpMax
+      );
+    })
+  })
+
+  describe('setTemporaryMaxPublic', () => {
+    it('happy case', async () => {
+      const newTemporaryMaxPublic = new BN('35');
+
+      await this.myNFT.setTemporaryMaxPublic(newTemporaryMaxPublic, { from: admin1 });
+      expect(await this.myNFT.temporaryMaxPublic()).to.be.bignumber.equal(newTemporaryMaxPublic);
+    })
+
+    it('require fail - new temporary public value cannot exceed max public value', async () => {
+      await expectRevert(
+        this.myNFT.setTemporaryMaxPublic(maxPublic.add(_1), { from: admin1 }),
+        revertMessages.NewTmpMaxExceedsMaxPublic
+      );
+
+      // still works when temporaryMaxPublic = maxPublic
+      await this.myNFT.setTemporaryMaxPublic(maxPublic, { from: admin1 });
+      expect(await this.myNFT.temporaryMaxPublic()).to.be.bignumber.equal(maxPublic)
+    })
+
+    it('check modifier - non-admin cannot set temporaryMaxPublic', async () => {
+      // TODO: dry
+      const revertMessageAccessControl = `AccessControl: account ${nonAdmin1.toLowerCase()} is missing role ${ZERO_ADDRESS}`;
+
+      await expectRevert(
+        this.myNFT.setTemporaryMaxPublic(maxPublic, { from: nonAdmin1 }),
+        revertMessageAccessControl
       );
     })
   })

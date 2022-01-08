@@ -63,7 +63,7 @@ contract MyNFT is
     }
 
     function setTemporaryMaxPublic(uint256 _temporaryMaxPublic) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(_temporaryMaxPublic <= MAX_PUBLIC, "_temporaryMaxPublic cannot exceed max public value");
+        require(_temporaryMaxPublic <= MAX_PUBLIC, "cannot change temporary public value to exceed max value");
         temporaryMaxPublic = _temporaryMaxPublic;
     }
 
