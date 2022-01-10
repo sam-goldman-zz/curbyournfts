@@ -7,8 +7,9 @@ module.exports = {
   defaultNetwork: "ropsten",
   networks: {
     hardhat: {
+      chainId: 1337,
       accounts: {
-        count: 600
+        count: 60
       },
     },
     ropsten: {

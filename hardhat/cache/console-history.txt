@@ -1,3 +1,134 @@
 .exit
+new BigNumber
+supply.toString();
+supply.toString
+ethers.utils.formatUnits(supply, 18)
+ethers.utils.formatUnits(balance, 18)
+ethers.utils.parseEther(supply);
+ethers.utils.fromWei(supply);
+ethers.utils.formatEther(supply);
+supply.toFixed();
+supply
+const supply = await contract.totalSupply();
+await provider.getSigner().getAddress();
+provider.getSigner().getAddress();;
+provider.getSigner();
+const contract = await factory.attach(contractAddress);
+const factory = await ethers.getContractFactory('MyNFT');
+const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
+const signer = provider.getSigner();
+const provider = new ethers.providers.JsonRpcProvider();
+.exit
+MyNFT.abi;
+MyNFT.abi
+  const MyNFT = await ethers.getContractFactory('MyNFT');
+import MyNFT from './hardhat/artifacts/contracts/MyNFT.sol/MyNFT.json';
+!ls
+ls
+const provider = new ethers.providers.JsonRpcProvider();
+.exit
+myNFT.address
+await s.mintReserved(1);
+await s.totalSupply();
+const s = myNFT.connect(non);
+const non = await provider.getSigner(3);
+await provider.getSigner(5).getAddress();
+await provider.getSigner(0).getAddress();
+await provider.getSigner(1).getAddress();
+provider.getSigner(1).getAddress();
+await nftWithSigner.balanceOf('0x70997970C51812dc3A010C7d01b50e0d17dc79C8');
+await nftWithNonAdminSigner.mintReserved(1);
+await nftWithSigner.balanceOf('0x70997970C51812dc3A010C7d01b50e0d17dc79C8');
+await nftWithSigner.totalSupply();
+await nftWithNonAdminSigner.mintPublic();
+await nftWithNonAdminSigner.totalSupply();
+const nftWithNonAdminSigner = myNFT.connect(signer2);
+await nftWithSigner.name();
+await tx
+tx
+await
+tx = nftWithSigner.totalSupply();
+const nftWithSigner = myNFT.connect(signer1);
+const myNFTWithSigner = myNFT.connect(signer1);
+del myNFTWithSigner
+delete myNFTWithSigner
+const myNFTWithSigner = myNFT.connect(signer1);
+const myNFTWithSigner = contract.connect(signer1);
+await myNFT.name();
+const myNFT.name();
+await signer.getAddress();
+signer.getAddress();
+const signer = provider.getSigner()
+const provider = new ethers.providers.JsonRpcProvider();
+ethers.provider
+await ethers.provider.totalSupply();
+await provider.totalSupply();
+await signer1.totalSupply();
+await signer1.getAddress();
+signer1.getAddress();
+const signer2 = await ethers.provider.getSigner(1);
+const signer1 = await ethers.provider.getSigner(0);
+admin.getAddress();
+admin.Address();
+const nonAdmin = await ethers.provider.getSigner(1).getAddress();
+const admin = await ethers.provider.getSigner(0).getAddress();
+await ethers.provider.getSigner(1).getAddress();
+await ethers.provider.getSigner(0).getAddress();
+await ethers.provider.getSigner(0);
+  const myNFT = await MyNFT.attach(contractAddress);
+  const MyNFT = await ethers.getContractFactory('MyNFT');
+  const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
+.exit
+await signer100.getAddress();
+signer100.getAddress();
+const signer100 = provider.getSigner(100);
+await signer2.getAddress();
+const signer2 = provider.getSigner(2);
+await signer.getAddress();
+signer.getAddress();
+signer.getBalance();
+const signer = provider.getSigner()
+await provider.getSigner(100);
+await provider.getSigner(2);
+await provider.getSigner(1);
+await provider.getSigner();
+await signer.getAddress();
+signer.getAddress();
+signer
+const signer = provider.getSigner();
+ethers.utils.formatEther(balance);
+balance = await provider.getBalance("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
+await provider.getBalance("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266").toString();
+await provider.getBalance("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
+provider.getBalance("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
+const provider = new ethers.providers.JsonRpcProvider();
+signer.provider;
+const signer = await ethers.getSigner();
+await ethers.getSigner();
+  console.log('Owner: ', owner);
+  const owner = await myNFT.ownerOf(1);
+  const myNFT = await MyNFT.attach(contractAddress);
+  const MyNFT = await ethers.getContractFactory('MyNFT');
+  const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
+.exit
+const owner = await myNFT.ownerOf(1);
+  console.log('Owner: ', owner);
+const owner = await myNFT.ownerOf(1);
+  const myNFT = await MyNFT.attach(contractAddress);
+  const MyNFT = await ethers.getContractFactory('MyNFT');
+  const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
+await address = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
+.exit
+await myNFT.ownerOf(41);
+await myNFT.ownerOf(31);
+await myNFT.mintReserved(1)
+await ethers.getSigner();
+await ethers.getSigners();
+const myNFT = await MyNFT.attach(address);
+  const MyNFT = await ethers.getContractFactory('MyNFT');
+const address = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
+console.log(accounts);
+const accounts = await ethers.provider.listAccounts();
+.exit
 (await ethers.provider.getBalance(accounts[0])).toString()
 accounts = await ethers.provider.listAccounts()
