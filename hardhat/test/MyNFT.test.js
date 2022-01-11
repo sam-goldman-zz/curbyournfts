@@ -3,7 +3,7 @@
 const { expect } = require('chai');
 
 // Import utilities from Test Helpers
-const { BN, expectEvent, expectRevert, constants, snapshot } = require('@openzeppelin/test-helpers');
+const { BN, expectRevert, constants, snapshot } = require('@openzeppelin/test-helpers');
 const { ZERO_ADDRESS } = require('@openzeppelin/test-helpers/src/constants');
 
 // Load compiled artifacts

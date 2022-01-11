@@ -3,28 +3,86 @@ import { ethers } from 'ethers';
 import { useState, useEffect } from 'react';
 import MyNFT from './artifacts/contracts/MyNFT.sol/MyNFT.json';
 
+const adminAddresses = [
+  "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+  "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC"
+];
+
 const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
 const provider = new ethers.providers.Web3Provider(window.ethereum);
 const signer = provider.getSigner();
 const contract = new ethers.Contract(contractAddress, MyNFT.abi, signer);
 
 function App() {
-  const [minted, setMinted] = useState('Loading...');
+  // const [account, setAccount] = useState('');
+  const [minted, setMinted] = useState('');
+  const [mintingLimitReached, setMintingLimitReached] = useState(false);
+  const [walletConnected, setWalletConnected] = useState(false);
 
   useEffect(() => {
-    if (minted === 'Loading...') {
+    if (minted === '') {
       getMinted();
     }
   });
 
-  const getMinted = async () => {
-    const supply = await contract.totalSupply();
-    setMinted(supply.toString());
+  window.ethereum.on('accountsChanged', function (accounts) {
+    if (accounts.length === 0) {
+      setWalletConnected(false);
+    }
+  });
+
+  const requestAccount = async () => {
+    try {
+      await window.ethereum.request({ method: 'eth_requestAccounts' });
+      setWalletConnected(true);
+    } catch (error) {
+      console.error(error);
+    }
   }
+
+  const getMinted = async () => {
+    if (typeof window.ethereum !== 'undefined') {
+      const supply = await contract.totalSupply();
+      setMinted(supply.toString());
+    }
+  }
+
+  const mint = async () => {
+    if (typeof window.ethereum !== undefined) {
+      try {
+        const tx = await contract.mintPublic();
+        console.log(tx);
+        const newMinted = parseInt(minted)+1;
+        setMinted(newMinted.toString());
+      } catch (err) {
+        console.log(err.data.message);
+        setMintingLimitReached(true);
+      }
+    }
+  }
+
+  // if (account === '') {
+  //   requestAccount();
+  // }
+  const connectWalletButton = walletConnected ? 
+    <button disabled>CONNECTED</button> : 
+    <button onClick={requestAccount}>CONNECT WALLET</button>;
+
+  const mintingLimitMsg = mintingLimitReached ?
+    <p>"You have reached your minting limit!"</p> :
+    "";
 
   return (
     <div className="App">
-      <p>Number of NFTs minted: {minted}</p>
+      {connectWalletButton}
+      <h1>NFT</h1>
+      <h2>PROJECT</h2>
+      <button onClick={mint}>MINT</button>
+      <p>Minted: {minted}/50</p>
+      {mintingLimitMsg}
+      <div>description</div>
+      <div><a href="">View the contract</a></div>
     </div>
   );
 }
