@@ -1,7 +1,8 @@
 import './App.css';
 import { ethers } from 'ethers';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import MyNFT from './artifacts/contracts/MyNFT.sol/MyNFT.json';
+import detectEthereumProvider from '@metamask/detect-provider';
 
 const adminAddresses = [
   "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
@@ -10,64 +11,118 @@ const adminAddresses = [
 ];
 
 const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
-const provider = new ethers.providers.Web3Provider(window.ethereum);
-const signer = provider.getSigner();
-const contract = new ethers.Contract(contractAddress, MyNFT.abi, signer);
+
+const revertMessages = {
+  TmpPublicExceedsMaxPublic: "_temporaryMaxPublic cannot be greater than max public value",
+  AdminAddressesLengthIsZero: "_adminAddresses length cannot be zero",
+  AdminCannotBeZeroAddress: "admin cannot be zero address",
+  NumTokensCannotBeZero: "numTokens cannot be zero",
+  NumReservedTokensExceedsMax: "number of tokens requested exceeds max reserved",
+  AddressReachedPublicMintingLimit: "this address has reached its minting limit",
+  MaxNumberPublicTokensMinted: "maximum number of public tokens have been minted",
+  PublicTokensExceedsTmpMax: "there are currently no more public tokens to mint",
+  NewTmpMaxExceedsMaxPublic: "cannot change temporary public value to exceed max value"
+};
 
 function App() {
-  // const [account, setAccount] = useState('');
-  const [minted, setMinted] = useState('');
+  const [providerOrSigner, setProviderOrSigner] = useState(new ethers.providers.JsonRpcProvider());
+  const [supply, setSupply] = useState('');
+  const [account, setAccount] = useState('');
   const [mintingLimitReached, setMintingLimitReached] = useState(false);
-  const [walletConnected, setWalletConnected] = useState(false);
+  const [walletOrMintBtnDisabled, setWalletOrMintBtnDisabled] = useState(false);
 
-  useEffect(() => {
-    if (minted === '') {
-      getMinted();
-    }
-  });
+  const contract = new ethers.Contract(contractAddress, MyNFT.abi, providerOrSigner);
 
   window.ethereum.on('accountsChanged', function (accounts) {
     if (accounts.length === 0) {
-      setWalletConnected(false);
+      setAccount('');
     }
+    else if (accounts[0] !== account) {
+      setAccount(accounts[0]);
+    }
+    setMintingLimitReached(false);
+    setWalletOrMintBtnDisabled(false);
   });
 
-  const requestAccount = async () => {
+  const getSupply = async () => {
     try {
-      await window.ethereum.request({ method: 'eth_requestAccounts' });
-      setWalletConnected(true);
-    } catch (error) {
-      console.error(error);
+      let supply = await contract.totalSupply();
+      setSupply(parseInt(supply).toString());
+    } catch (e) {
+      console.error(e);
     }
-  }
+  };
 
-  const getMinted = async () => {
-    if (typeof window.ethereum !== 'undefined') {
-      const supply = await contract.totalSupply();
-      setMinted(supply.toString());
+  const requestAccount = async () => {
+    if (walletOrMintBtnDisabled) {
+      return;
     }
-  }
+    setWalletOrMintBtnDisabled(true);
 
-  const mint = async () => {
-    if (typeof window.ethereum !== undefined) {
+    const metaMaskProvider = await detectEthereumProvider({mustBeMetaMask: true});
+    if (metaMaskProvider) {
       try {
-        const tx = await contract.mintPublic();
-        console.log(tx);
-        const newMinted = parseInt(minted)+1;
-        setMinted(newMinted.toString());
-      } catch (err) {
-        console.log(err.data.message);
-        setMintingLimitReached(true);
+        let newProvider = new ethers.providers.Web3Provider(window.ethereum);
+        let newSigner = newProvider.getSigner();
+        setProviderOrSigner(newSigner);
+
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const account = accounts[0];
+        setAccount(account);
+      }
+      finally {
+        setWalletOrMintBtnDisabled(false);
       }
     }
+    else {
+      console.error('Please install MetaMask!');
+    }
+  };
+
+  const mintPublic = async () => {
+    if (walletOrMintBtnDisabled) {
+      return;
+    }
+    setWalletOrMintBtnDisabled(true);
+
+    try {
+      await contract.mintPublic();
+      const newSupply = parseInt(supply)+1;
+      setSupply(newSupply.toString());
+    }
+    catch (error) {
+      if (error.code === -32603) {
+        const message = error.data.message;
+        if (message.includes(revertMessages.AddressReachedPublicMintingLimit)) {
+          // user has reached their minting limit
+          setWalletOrMintBtnDisabled(true);
+          setMintingLimitReached(true);
+          return;
+        }
+      }
+    }
+    setWalletOrMintBtnDisabled(false);
+  };
+
+  if (supply === '') {
+    getSupply();
   }
 
-  // if (account === '') {
-  //   requestAccount();
-  // }
-  const connectWalletButton = walletConnected ? 
-    <button disabled>CONNECTED</button> : 
-    <button onClick={requestAccount}>CONNECT WALLET</button>;
+  let walletOrMintBtn;
+  if (account !== '') {
+    walletOrMintBtn = <button
+      disabled={walletOrMintBtnDisabled}
+      onClick={mintPublic}>
+        MINT
+      </button>;
+  }
+  else {
+    walletOrMintBtn = <button
+      disabled={walletOrMintBtnDisabled}
+      onClick={requestAccount}>
+        CONNECT WALLET
+      </button>;
+  }
 
   const mintingLimitMsg = mintingLimitReached ?
     <p>"You have reached your minting limit!"</p> :
@@ -75,16 +130,63 @@ function App() {
 
   return (
     <div className="App">
-      {connectWalletButton}
       <h1>NFT</h1>
       <h2>PROJECT</h2>
-      <button onClick={mint}>MINT</button>
-      <p>Minted: {minted}/50</p>
+      {walletOrMintBtn}
+      <p>Minted: {supply}/50</p>
       {mintingLimitMsg}
       <div>description</div>
-      <div><a href="">View the contract</a></div>
+      <div><a href="">View on Explorer</a></div>
     </div>
   );
+
+
+
+  // const getProvider = async () => {
+  //   let provider = await detectEthereumProvider();
+  //   if (provider) {
+  //     console.log('Ethereum successfully detected!');
+  //     console.log('metamask provider: ', provider);
+
+  //     // const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+  //     // const account = accounts[0];
+
+  //     const contract = new ethers.Contract(contractAddress, MyNFT.abi, provider);
+
+  //     setProvider(provider);
+  //   }
+  //   else {
+  //     console.error('Please install Metamask!', error);
+  //     provider = new ethers.providers.JsonRpcProvider();
+  //     const contract = new ethers.Contract(contractAddress, MyNFT.abi, provider);
+
+  //     setProvider(provider);
+  //   }
+  // }
+
+  // const requestAccount = async () => {
+  //   try {
+  //     await window.ethereum.request({ method: 'eth_requestAccounts' });
+  //     setWalletConnected(true);
+  //   } catch (e) {
+  //     console.error(e);
+  //   }
+  // }
+
+  // const getMinted = async () => {
+  //   if (typeof window.ethereum !== 'undefined') {
+  //     const supply = await contract.totalSupply();
+  //     setMinted(supply.toString());
+  //   }
+  // }
+
+  // // if (account === '') {
+  // //   requestAccount();
+  // // }
+
+  // if (provider === '') {
+  //   getProvider();
+  // }
 }
 
 
@@ -193,3 +295,32 @@ function App() {
 // }
   
 export default App;
+
+
+
+
+
+  // const a = async () => {
+  //   const provider = await detectEthereumProvider()
+
+  //   if (provider) {
+
+  //     console.log('Ethereum successfully detected!')
+  //     console.log('provider: ', provider);
+  //     console.log('window.ethereum: ', window.ethereum);
+  //     console.log('should be true: ', provider === window.ethereum);
+  
+  //     // From now on, this should always be true:
+  //     // provider === window.ethereum
+  
+  //     // Access the decentralized web!
+  //   } else {
+  
+  //   // if the provider is not detected, detectEthereumProvider resolves to null
+  //   console.error('Please install MetaMask!')
+  //   }
+  // }
+
+  // a();
+
+  // return (<p>Hi</p>);
