@@ -1,8 +1,7 @@
 import './App.css';
 import { ethers } from 'ethers';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import MyNFT from './artifacts/contracts/MyNFT.sol/MyNFT.json';
-import detectEthereumProvider from '@metamask/detect-provider';
 
 const adminAddresses = [
   "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
@@ -24,6 +23,10 @@ const revertMessages = {
   NewTmpMaxExceedsMaxPublic: "cannot change temporary public value to exceed max value"
 };
 
+const isMetaMaskInstalled = () => {
+  return Boolean(window.ethereum && window.ethereum.isMetaMask)
+}
+
 function App() {
   const [providerOrSigner, setProviderOrSigner] = useState(new ethers.providers.JsonRpcProvider());
   const [supply, setSupply] = useState('');
@@ -31,18 +34,44 @@ function App() {
   const [mintingLimitReached, setMintingLimitReached] = useState(false);
   const [walletOrMintBtnDisabled, setWalletOrMintBtnDisabled] = useState(false);
 
+  useEffect(() => {
+    if (isMetaMaskInstalled()) {
+      function handleAccountsChanged(accounts) {
+        if (accounts.length === 0 && account !== '') {
+          setAccount('');
+        }
+        else if (accounts[0] !== account) {
+          setAccount(accounts[0]);
+        }
+        setMintingLimitReached(false);
+        setWalletOrMintBtnDisabled(false);
+      }
+
+      window.ethereum.on('accountsChanged', handleAccountsChanged);
+
+      return () => window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+    }
+  });
+
   const contract = new ethers.Contract(contractAddress, MyNFT.abi, providerOrSigner);
 
-  window.ethereum.on('accountsChanged', function (accounts) {
-    if (accounts.length === 0) {
-      setAccount('');
+  const setNewSigner = () => {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    setProviderOrSigner(signer);
+  }
+
+  const initialize = async () => {
+    try {
+      const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+      if (accounts.length > 0) {
+        setAccount(accounts[0]);
+        setNewSigner();
+      }
+    } catch (err) {
+      console.error('Error on init when getting accounts', err)
     }
-    else if (accounts[0] !== account) {
-      setAccount(accounts[0]);
-    }
-    setMintingLimitReached(false);
-    setWalletOrMintBtnDisabled(false);
-  });
+  }
 
   const getSupply = async () => {
     try {
@@ -53,33 +82,25 @@ function App() {
     }
   };
 
-  const requestAccount = async () => {
+  const handleWalletConnect = async () => {
     if (walletOrMintBtnDisabled) {
       return;
     }
     setWalletOrMintBtnDisabled(true);
 
-    const metaMaskProvider = await detectEthereumProvider({mustBeMetaMask: true});
-    if (metaMaskProvider) {
-      try {
-        let newProvider = new ethers.providers.Web3Provider(window.ethereum);
-        let newSigner = newProvider.getSigner();
-        setProviderOrSigner(newSigner);
-
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        const account = accounts[0];
-        setAccount(account);
-      }
-      finally {
-        setWalletOrMintBtnDisabled(false);
-      }
+    try {
+      setNewSigner();
+      
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const account = accounts[0];
+      setAccount(account);
     }
-    else {
-      console.error('Please install MetaMask!');
+    finally {
+      setWalletOrMintBtnDisabled(false);
     }
   };
 
-  const mintPublic = async () => {
+  const handleMintPublic = async () => {
     if (walletOrMintBtnDisabled) {
       return;
     }
@@ -89,10 +110,15 @@ function App() {
       await contract.mintPublic();
       const newSupply = parseInt(supply)+1;
       setSupply(newSupply.toString());
-    }
-    catch (error) {
+    } catch (error) {
       if (error.code === -32603) {
-        const message = error.data.message;
+        let message;
+        if (error.hasOwnProperty('data')) {
+          message = error.data.message;
+        } 
+        else {
+          message = error.message;
+        }
         if (message.includes(revertMessages.AddressReachedPublicMintingLimit)) {
           // user has reached their minting limit
           setWalletOrMintBtnDisabled(true);
@@ -104,23 +130,41 @@ function App() {
     setWalletOrMintBtnDisabled(false);
   };
 
+  // TODO: do something more than console.log
+  const handleMetaMaskNotInstalled = () => {
+    console.log('Please install Metamask, then refresh this page!');
+  }
+
+  if (isMetaMaskInstalled() && account === '') {
+    initialize();
+  }
+
   if (supply === '') {
     getSupply();
   }
 
   let walletOrMintBtn;
-  if (account !== '') {
-    walletOrMintBtn = <button
-      disabled={walletOrMintBtnDisabled}
-      onClick={mintPublic}>
-        MINT
+  if (!isMetaMaskInstalled()) {
+    walletOrMintBtn = 
+      <button
+        onClick={handleMetaMaskNotInstalled}>
+          CONNECT WALLET
+      </button>;
+  }
+  else if (account !== '') {
+    walletOrMintBtn = 
+      <button
+        disabled={walletOrMintBtnDisabled}
+        onClick={handleMintPublic}>
+          MINT
       </button>;
   }
   else {
-    walletOrMintBtn = <button
-      disabled={walletOrMintBtnDisabled}
-      onClick={requestAccount}>
-        CONNECT WALLET
+    walletOrMintBtn = 
+      <button
+        disabled={walletOrMintBtnDisabled}
+        onClick={handleWalletConnect}>
+          CONNECT WALLET
       </button>;
   }
 
@@ -130,6 +174,7 @@ function App() {
 
   return (
     <div className="App">
+      {account}
       <h1>NFT</h1>
       <h2>PROJECT</h2>
       {walletOrMintBtn}
@@ -139,188 +184,6 @@ function App() {
       <div><a href="">View on Explorer</a></div>
     </div>
   );
-
-
-
-  // const getProvider = async () => {
-  //   let provider = await detectEthereumProvider();
-  //   if (provider) {
-  //     console.log('Ethereum successfully detected!');
-  //     console.log('metamask provider: ', provider);
-
-  //     // const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-  //     // const account = accounts[0];
-
-  //     const contract = new ethers.Contract(contractAddress, MyNFT.abi, provider);
-
-  //     setProvider(provider);
-  //   }
-  //   else {
-  //     console.error('Please install Metamask!', error);
-  //     provider = new ethers.providers.JsonRpcProvider();
-  //     const contract = new ethers.Contract(contractAddress, MyNFT.abi, provider);
-
-  //     setProvider(provider);
-  //   }
-  // }
-
-  // const requestAccount = async () => {
-  //   try {
-  //     await window.ethereum.request({ method: 'eth_requestAccounts' });
-  //     setWalletConnected(true);
-  //   } catch (e) {
-  //     console.error(e);
-  //   }
-  // }
-
-  // const getMinted = async () => {
-  //   if (typeof window.ethereum !== 'undefined') {
-  //     const supply = await contract.totalSupply();
-  //     setMinted(supply.toString());
-  //   }
-  // }
-
-  // // if (account === '') {
-  // //   requestAccount();
-  // // }
-
-  // if (provider === '') {
-  //   getProvider();
-  // }
 }
-
-
-
-
-// // async function mint() {
-// //   if (typeof window.ethereum !== 'undefined') {
-
-// //   }
-// // }
-
-// async function getNumMinted() {
-//   return await contract.totalSupply();
-// }
-
-// const num = await getNumMinted();
-
-// function App() {
-//   // async function getNumMinted() {
-//   //   if (typeof window.ethereum !== 'undefined') {
-//   //     try {
-//   //       const totalSupply = await contract.totalSupply();
-//   //     } catch (err) {
-//   //       console.log("Error: ", err);
-//   //     }
-//   //   }
-//   // }
-
-//   // const initialNumMinted = getNumMinted().resolve();
-//   // console.log(initialNumMinted);
-
-//   // const [numMinted, setNumMinted] = useState(initialNumMinted);
-
-//   return (
-//     <div className="App">
-//       {/* <button onClick={mint}>Mint an NFT</button> */}
-//       <p>Number of NFTs minted: {num}</p>
-//     </div>
-//   )
-// }
-
-
-  // call the smart contract, read the current greeting value
-  // async function fetchGreeting() {
-  //   if (typeof window.ethereum !== 'undefined') {
-  //     const provider = new ethers.providers.Web3Provider(window.ethereum);
-  //     const contract = new ethers.Contract(contractAddress, MyNFT.abi, provider);
-  //     try {
-  //       const totalSupply = await contract.totalSupply();
-  //       console.log('total supply: ', ethers.utils.formatEther( totalSupply ));
-  //     } catch (err) {
-  //       console.log("Error: ", err);
-  //     }
-  //   }    
-  // }
-
-
-
-
-// function App() {
-//   // store greeting in local state
-//   const [greeting, setGreetingValue] = useState()
-
-//   // request access to the user's MetaMask account
-//   async function requestAccount() {
-//     await window.ethereum.request({ method: 'eth_requestAccounts' });
-//   }
-
-//   // call the smart contract, read the current greeting value
-//   async function fetchGreeting() {
-//     if (typeof window.ethereum !== 'undefined') {
-//       const provider = new ethers.providers.Web3Provider(window.ethereum)
-//       const contract = new ethers.Contract(greeterAddress, Greeter.abi, provider)
-//       try {
-//         const data = await contract.greet()
-//         console.log('data: ', data)
-//       } catch (err) {
-//         console.log("Error: ", err)
-//       }
-//     }    
-//   }
-
-//   // call the smart contract, send an update
-//   async function setGreeting() {
-//     if (!greeting) return
-//     if (typeof window.ethereum !== 'undefined') {
-//       await requestAccount()
-//       const provider = new ethers.providers.Web3Provider(window.ethereum);
-//       const signer = provider.getSigner()
-//       const contract = new ethers.Contract(greeterAddress, Greeter.abi, signer)
-//       const transaction = await contract.setGreeting(greeting)
-//       await transaction.wait()
-//       fetchGreeting()
-//     }
-//   }
-
-//   return (
-//     <div className="App">
-//       <header className="App-header">
-//         <button onClick={fetchGreeting}>Fetch Greeting</button>
-//         <button onClick={setGreeting}>Set Greeting</button>
-//         <input onChange={e => setGreetingValue(e.target.value)} placeholder="Set greeting" />
-//       </header>
-//     </div>
-//   );
-// }
   
 export default App;
-
-
-
-
-
-  // const a = async () => {
-  //   const provider = await detectEthereumProvider()
-
-  //   if (provider) {
-
-  //     console.log('Ethereum successfully detected!')
-  //     console.log('provider: ', provider);
-  //     console.log('window.ethereum: ', window.ethereum);
-  //     console.log('should be true: ', provider === window.ethereum);
-  
-  //     // From now on, this should always be true:
-  //     // provider === window.ethereum
-  
-  //     // Access the decentralized web!
-  //   } else {
-  
-  //   // if the provider is not detected, detectEthereumProvider resolves to null
-  //   console.error('Please install MetaMask!')
-  //   }
-  // }
-
-  // a();
-
-  // return (<p>Hi</p>);
