@@ -12,10 +12,7 @@ const adminAddresses = [
 const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
 
 const revertMessages = {
-  TmpPublicExceedsMaxPublic: "_temporaryMaxPublic cannot be greater than max public value",
-  AdminAddressesLengthIsZero: "_adminAddresses length cannot be zero",
-  AdminCannotBeZeroAddress: "admin cannot be zero address",
-  NumTokensCannotBeZero: "numTokens cannot be zero",
+  NumReservedTokensCannotBeZero: "numReservedTokens cannot be zero",
   NumReservedTokensExceedsMax: "number of tokens requested exceeds max reserved",
   AddressReachedPublicMintingLimit: "this address has reached its minting limit",
   MaxNumberPublicTokensMinted: "maximum number of public tokens have been minted",
@@ -23,167 +20,168 @@ const revertMessages = {
   NewTmpMaxExceedsMaxPublic: "cannot change temporary public value to exceed max value"
 };
 
-const isMetaMaskInstalled = () => {
-  return Boolean(window.ethereum && window.ethereum.isMetaMask)
-}
+const isMetaMaskInstalled = Boolean(window.ethereum && window.ethereum.isMetaMask);
 
 function App() {
-  const [providerOrSigner, setProviderOrSigner] = useState(new ethers.providers.JsonRpcProvider());
-  const [supply, setSupply] = useState('');
-  const [account, setAccount] = useState('');
-  const [mintingLimitReached, setMintingLimitReached] = useState(false);
-  const [walletOrMintBtnDisabled, setWalletOrMintBtnDisabled] = useState(false);
+  const [provider, setProvider] = useState(null);
+  const [account, setAccount] = useState(null);
+  const [network, setNetwork] = useState(null);
+  const [supply, setSupply] = useState(null);
+  const [isMintBtn, setIsMintBtn] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [isBtnDisabled, setIsBtnDisabled] = useState(false);
+
+  // const contract = new ethers.Contract(contractAddress, MyNFT.abi, providerOrSigner);
 
   useEffect(() => {
-    if (isMetaMaskInstalled()) {
-      function handleAccountsChanged(accounts) {
-        if (accounts.length === 0 && account !== '') {
-          setAccount('');
-        }
-        else if (accounts[0] !== account) {
-          setAccount(accounts[0]);
-        }
-        setMintingLimitReached(false);
-        setWalletOrMintBtnDisabled(false);
+    const provider = new ethers.providers.JsonRpcProvider();
+    const contract = new ethers.Contract(contractAddress, MyNFT.abi, provider);
+
+    const getSupply = async () => {
+      try {
+        let supply = await contract.totalSupply();
+        setSupply(parseInt(supply));
+      } catch (e) {
+        console.error('Error calling totalSupply', e);
       }
+    };
+
+    getSupply();
+  }, []);
+
+  useEffect(() => {
+    if (isMetaMaskInstalled) {
+      const getInitialProvider = async () => {
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        if (accounts.length > 0) {
+          const account = accounts[0];
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+
+          setProvider(provider);
+          setAccount(account);
+          setIsMintBtn(true);
+        }
+      }
+
+      getInitialProvider();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isMetaMaskInstalled) {
+      const handleAccountsChanged = async (accounts) => {
+        if (accounts.length === 0) {
+          setProvider(null);
+          setIsMintBtn(false);
+          setErrorMessage(null);
+          setAccount(null);
+        }
+        else {
+          const account = accounts[0];
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          setProvider(provider);
+          setAccount(account);
+          setErrorMessage(null);
+        }
+      };
 
       window.ethereum.on('accountsChanged', handleAccountsChanged);
 
       return () => window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
     }
-  });
+  }, []);
 
-  const contract = new ethers.Contract(contractAddress, MyNFT.abi, providerOrSigner);
-
-  const setNewSigner = () => {
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
-    setProviderOrSigner(signer);
-  }
-
-  const initialize = async () => {
-    try {
-      const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-      if (accounts.length > 0) {
-        setAccount(accounts[0]);
-        setNewSigner();
+  useEffect(() => {
+    if (isMetaMaskInstalled) {
+      const handleChainChanged = () => {
+        window.location.reload();
       }
-    } catch (err) {
-      console.error('Error on init when getting accounts', err)
-    }
-  }
 
-  const getSupply = async () => {
-    try {
-      let supply = await contract.totalSupply();
-      setSupply(parseInt(supply).toString());
-    } catch (e) {
-      console.error(e);
-    }
-  };
+      window.ethereum.on('chainChanged', handleChainChanged);
 
-  const handleWalletConnect = async () => {
-    if (walletOrMintBtnDisabled) {
-      return;
+      return () => window.ethereum.removeListener('chainChanged', handleChainChanged);
     }
-    setWalletOrMintBtnDisabled(true);
+  }, []);
 
-    try {
-      setNewSigner();
-      
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      const account = accounts[0];
-      setAccount(account);
-    }
-    finally {
-      setWalletOrMintBtnDisabled(false);
-    }
-  };
-
-  const handleMintPublic = async () => {
-    if (walletOrMintBtnDisabled) {
-      return;
-    }
-    setWalletOrMintBtnDisabled(true);
-
-    try {
-      await contract.mintPublic();
-      const newSupply = parseInt(supply)+1;
-      setSupply(newSupply.toString());
-    } catch (error) {
-      if (error.code === -32603) {
-        let message;
-        if (error.hasOwnProperty('data')) {
-          message = error.data.message;
-        } 
+  useEffect(() => {
+    if (isMetaMaskInstalled) {
+      const handleConnect = (connectInfo) => {
+        // TODO: change chainId when you switch from localhost
+        if (connectInfo.chainId !== '0x539') {
+          setErrorMessage('Please connect to the correct network!')
+        }
         else {
-          message = error.message;
-        }
-        if (message.includes(revertMessages.AddressReachedPublicMintingLimit)) {
-          // user has reached their minting limit
-          setWalletOrMintBtnDisabled(true);
-          setMintingLimitReached(true);
-          return;
+          setNetwork('Localhost 8545');
         }
       }
+
+      window.ethereum.on('connect', handleConnect);
+
+      return () => window.ethereum.removeListener('connect', handleConnect);
     }
-    setWalletOrMintBtnDisabled(false);
-  };
+  }, []);
 
-  // TODO: do something more than console.log
-  const handleMetaMaskNotInstalled = () => {
-    console.log('Please install Metamask, then refresh this page!');
-  }
+  useEffect(() => {
+    const handleDisconnect = (error) => {
+      console.log('triggered disconnect');
+      setErrorMessage('You have been disconnected from the network! Please reload page.');
+      console.error('User disconnected from network', error);
+    };
 
-  if (isMetaMaskInstalled() && account === '') {
-    initialize();
-  }
+    window.ethereum.on('disconnect', handleDisconnect);
 
-  if (supply === '') {
-    getSupply();
-  }
+    return () => window.ethereum.removeListener('disconnect', handleDisconnect);
+  }, []);
+  
+  const handleConnectWalletClick = async () => {
+    if (isBtnDisabled) {
+      return;
+    }
+    setIsBtnDisabled(true);
 
-  let walletOrMintBtn;
-  if (!isMetaMaskInstalled()) {
-    walletOrMintBtn = 
-      <button
-        onClick={handleMetaMaskNotInstalled}>
-          CONNECT WALLET
-      </button>;
+    if (isMetaMaskInstalled) {
+      try {
+        // If this connection request is successful, then handleAccountsChanged is automatically called.
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        setIsMintBtn(true);
+      } catch (e) {
+        console.error("Error when requesting user's MetaMask account", e);
+      }
+    }
+    else {
+      setErrorMessage('Please install MetaMask, then refresh this page!');
+    }
+    setIsBtnDisabled(false);
   }
-  else if (account !== '') {
-    walletOrMintBtn = 
-      <button
-        disabled={walletOrMintBtnDisabled}
-        onClick={handleMintPublic}>
-          MINT
-      </button>;
-  }
-  else {
-    walletOrMintBtn = 
-      <button
-        disabled={walletOrMintBtnDisabled}
-        onClick={handleWalletConnect}>
-          CONNECT WALLET
-      </button>;
-  }
-
-  const mintingLimitMsg = mintingLimitReached ?
-    <p>"You have reached your minting limit!"</p> :
-    "";
 
   return (
     <div className="App">
+      {network}
       {account}
       <h1>NFT</h1>
       <h2>PROJECT</h2>
-      {walletOrMintBtn}
+      
+      {isMintBtn ? (
+        <button
+          disabled={isBtnDisabled}>
+            MINT
+        </button>
+      ) : (
+        <button
+          disabled={isBtnDisabled}
+          onClick={() => handleConnectWalletClick()}>
+            CONNECT WALLET
+        </button>
+      )}
+
+      {errorMessage && <div>{errorMessage}</div>}
+      
       <p>Minted: {supply}/50</p>
-      {mintingLimitMsg}
+      {/* {mintingLimitMsg} */}
       <div>description</div>
-      <div><a href="">View on Explorer</a></div>
+      <div><a href="">OpenSea</a> | <a href="">Contract</a></div>
     </div>
   );
 }
-  
+
 export default App;

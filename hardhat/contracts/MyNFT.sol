@@ -41,11 +41,11 @@ contract MyNFT is
         }
     }
 
-    function mintReserved(uint256 numTokens) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(numTokens > 0, "numTokens cannot be zero");
-        require(_reservedTokenIdTracker.current() + numTokens <= MAX_RESERVED, "number of tokens requested exceeds max reserved");
+    function mintReserved(uint256 numReservedTokens) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(numReservedTokens > 0, "numReservedTokens cannot be zero");
+        require(_reservedTokenIdTracker.current() + numReservedTokens <= MAX_RESERVED, "number of tokens requested exceeds max reserved");
 
-        for (uint256 i = 0; i < numTokens; i++) {
+        for (uint256 i = 0; i < numReservedTokens; i++) {
             _reservedTokenIdTracker.increment();
             _safeMint(msg.sender, _reservedTokenIdTracker.current() + MAX_PUBLIC);
         }

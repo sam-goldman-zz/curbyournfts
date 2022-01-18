@@ -10,10 +10,10 @@ const { ZERO_ADDRESS } = require('@openzeppelin/test-helpers/src/constants');
 const MyNFT = artifacts.require('MyNFT');
 
 const revertMessages = {
-  TmpPublicExceedsMaxPublic: "_temporaryMaxPublic cannot be greater than max public value",
-  AdminAddressesLengthIsZero: "_adminAddresses length cannot be zero",
-  AdminCannotBeZeroAddress: "admin cannot be zero address",
-  NumTokensCannotBeZero: "numTokens cannot be zero",
+  ConstructorTmpPublicExceedsMaxPublic: "_temporaryMaxPublic cannot be greater than max public value",
+  ConstructorAdminAddressesLengthIsZero: "_adminAddresses length cannot be zero",
+  ConstructorAdminCannotBeZeroAddress: "admin cannot be zero address",
+  NumReservedTokensCannotBeZero: "numReservedTokens cannot be zero",
   NumReservedTokensExceedsMax: "number of tokens requested exceeds max reserved",
   AddressReachedPublicMintingLimit: "this address has reached its minting limit",
   MaxNumberPublicTokensMinted: "maximum number of public tokens have been minted",
@@ -91,7 +91,7 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin1, nonAdmin2, ...o
           maxPublic + 1,
           adminAddresses
         ),
-        revertMessages.TmpPublicExceedsMaxPublic
+        revertMessages.ConstructorTmpPublicExceedsMaxPublic
       );
 
       // still works with 1 less
@@ -109,7 +109,7 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin1, nonAdmin2, ...o
           temporaryMaxPublic,
           []
         ),
-        revertMessages.AdminAddressesLengthIsZero
+        revertMessages.ConstructorAdminAddressesLengthIsZero
       );
 
       // still works with one adminAddress
@@ -126,7 +126,7 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin1, nonAdmin2, ...o
           temporaryMaxPublic,
           [constants.ZERO_ADDRESS]
         ),
-        revertMessages.AdminCannotBeZeroAddress
+        revertMessages.ConstructorAdminCannotBeZeroAddress
       );
     })
   })
@@ -147,10 +147,10 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin1, nonAdmin2, ...o
       expect(await this.myNFT.ownerOf(maxPublic.add(_2))).to.equal(admin1);
     });
 
-    it('require fail - number of tokens cannot be zero', async () => {
+    it('require fail - number of reserved tokens cannot be zero', async () => {
       await expectRevert(
         this.myNFT.mintReserved(0, { from: admin1 }),
-        revertMessages.NumTokensCannotBeZero
+        revertMessages.NumReservedTokensCannotBeZero
       );
 
       // still works for 1 token
