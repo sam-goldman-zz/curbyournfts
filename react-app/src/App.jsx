@@ -62,10 +62,12 @@ function App() {
   useEffect(() => {
     if (isMetaMaskInstalled) {
       if (window.ethereum.isConnected()) {
+        const handleIsConnected = async () => {
+          const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+          handleChainId(chainId);
+        };
 
-        
-        const chainId = await getChainId();
-        handleChainId(chainId);
+        handleIsConnected();
       }
 
       const handleConnect = (connectInfo) => {
@@ -178,19 +180,12 @@ function App() {
   }
 
   const handleChainId = (chainId) => {
-    console.log(chainId)
     if (chainId === correctChainId) {
       setIsCorrectChainId(true);
     }
     else {
       setIsCorrectChainId(false);
     }
-  };
-
-  // TODO: this returns a promise
-  const getChainId = async () => {
-    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-    return chainId;
   };
 
   return (
