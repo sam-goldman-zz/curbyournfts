@@ -11,6 +11,9 @@ const adminAddresses = [
 
 const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
 
+// TODO: change correctChainId when you switch from localhost
+const correctChainId = '0x539';
+
 const revertMessages = {
   NumReservedTokensCannotBeZero: "numReservedTokens cannot be zero",
   NumReservedTokensExceedsMax: "number of tokens requested exceeds max reserved",
@@ -22,6 +25,12 @@ const revertMessages = {
 
 const isMetaMaskInstalled = Boolean(window.ethereum && window.ethereum.isMetaMask);
 
+const shortenAccount = (account) => {
+  const firstHalf = account.slice(0, 6);
+  const secondHalf = account.slice(-4);
+  return `${firstHalf}...${secondHalf}`;
+};
+
 function App() {
   const [provider, setProvider] = useState(null);
   const [account, setAccount] = useState(null);
@@ -30,19 +39,20 @@ function App() {
   const [isMintBtn, setIsMintBtn] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [isBtnDisabled, setIsBtnDisabled] = useState(false);
+  const [isCorrectChainId, setIsCorrectChainId] = useState(null);
 
   // const contract = new ethers.Contract(contractAddress, MyNFT.abi, providerOrSigner);
 
   useEffect(() => {
-    const provider = new ethers.providers.JsonRpcProvider();
-    const contract = new ethers.Contract(contractAddress, MyNFT.abi, provider);
-
     const getSupply = async () => {
+      const provider = new ethers.providers.JsonRpcProvider();
+      const contract = new ethers.Contract(contractAddress, MyNFT.abi, provider);
+
       try {
         let supply = await contract.totalSupply();
         setSupply(parseInt(supply));
       } catch (e) {
-        console.error('Error calling totalSupply', e);
+        console.error('Error calling totalSupply without MetaMask installed', e);
       }
     };
 
@@ -51,7 +61,27 @@ function App() {
 
   useEffect(() => {
     if (isMetaMaskInstalled) {
-      const getInitialProvider = async () => {
+      if (window.ethereum.isConnected()) {
+
+        
+        const chainId = await getChainId();
+        handleChainId(chainId);
+      }
+
+      const handleConnect = (connectInfo) => {
+        const chainId = connectInfo.chainId;
+        handleChainId(chainId);
+      }
+
+      window.ethereum.on('connect', handleConnect);
+
+      return () => window.ethereum.removeListener('connect', handleConnect);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isMetaMaskInstalled && isCorrectChainId) {
+      const getInitialConnection = async () => {
         const accounts = await window.ethereum.request({ method: 'eth_accounts' });
         if (accounts.length > 0) {
           const account = accounts[0];
@@ -60,21 +90,26 @@ function App() {
           setProvider(provider);
           setAccount(account);
           setIsMintBtn(true);
+          setNetwork('Localhost 8545');
         }
       }
 
-      getInitialProvider();
+      getInitialConnection();
     }
-  }, []);
+  }, [isCorrectChainId]);
 
   useEffect(() => {
-    if (isMetaMaskInstalled) {
+    if (isMetaMaskInstalled && isCorrectChainId !== null) {
       const handleAccountsChanged = async (accounts) => {
         if (accounts.length === 0) {
           setProvider(null);
           setIsMintBtn(false);
           setErrorMessage(null);
           setAccount(null);
+          setNetwork(null);
+        }
+        else if (isCorrectChainId === false) {
+          setErrorMessage('Please connect to the correct network!');
         }
         else {
           const account = accounts[0];
@@ -82,6 +117,8 @@ function App() {
           setProvider(provider);
           setAccount(account);
           setErrorMessage(null);
+          setIsMintBtn(true);
+          setNetwork('Localhost 8545');
         }
       };
 
@@ -89,7 +126,7 @@ function App() {
 
       return () => window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
     }
-  }, []);
+  }, [isCorrectChainId]);
 
   useEffect(() => {
     if (isMetaMaskInstalled) {
@@ -105,35 +142,18 @@ function App() {
 
   useEffect(() => {
     if (isMetaMaskInstalled) {
-      const handleConnect = (connectInfo) => {
-        // TODO: change chainId when you switch from localhost
-        if (connectInfo.chainId !== '0x539') {
-          setErrorMessage('Please connect to the correct network!')
-        }
-        else {
-          setNetwork('Localhost 8545');
-        }
-      }
-
-      window.ethereum.on('connect', handleConnect);
-
-      return () => window.ethereum.removeListener('connect', handleConnect);
+      const handleDisconnect = (error) => {
+        setErrorMessage('You have been disconnected from the network! Please reload page.');
+        console.error('User disconnected from network', error);
+      };
+  
+      window.ethereum.on('disconnect', handleDisconnect);
+  
+      return () => window.ethereum.removeListener('disconnect', handleDisconnect);
     }
   }, []);
 
-  useEffect(() => {
-    const handleDisconnect = (error) => {
-      console.log('triggered disconnect');
-      setErrorMessage('You have been disconnected from the network! Please reload page.');
-      console.error('User disconnected from network', error);
-    };
-
-    window.ethereum.on('disconnect', handleDisconnect);
-
-    return () => window.ethereum.removeListener('disconnect', handleDisconnect);
-  }, []);
-  
-  const handleConnectWalletClick = async () => {
+  const handleWalletBtnClick = async () => {
     if (isBtnDisabled) {
       return;
     }
@@ -142,8 +162,11 @@ function App() {
     if (isMetaMaskInstalled) {
       try {
         // If this connection request is successful, then handleAccountsChanged is automatically called.
-        await window.ethereum.request({ method: 'eth_requestAccounts' });
-        setIsMintBtn(true);
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+        if (accounts > 0 && isCorrectChainId === false) {
+          setErrorMessage('Please connect to the correct network!');
+        }
       } catch (e) {
         console.error("Error when requesting user's MetaMask account", e);
       }
@@ -154,10 +177,26 @@ function App() {
     setIsBtnDisabled(false);
   }
 
+  const handleChainId = (chainId) => {
+    console.log(chainId)
+    if (chainId === correctChainId) {
+      setIsCorrectChainId(true);
+    }
+    else {
+      setIsCorrectChainId(false);
+    }
+  };
+
+  // TODO: this returns a promise
+  const getChainId = async () => {
+    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+    return chainId;
+  };
+
   return (
     <div className="App">
-      {network}
-      {account}
+      {network && <div>{network}</div>}
+      {account && <div>{shortenAccount(account)}</div>}
       <h1>NFT</h1>
       <h2>PROJECT</h2>
       
@@ -169,7 +208,7 @@ function App() {
       ) : (
         <button
           disabled={isBtnDisabled}
-          onClick={() => handleConnectWalletClick()}>
+          onClick={() => handleWalletBtnClick()}>
             CONNECT WALLET
         </button>
       )}
