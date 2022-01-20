@@ -143,7 +143,7 @@ function App() {
   useEffect(() => {
     if (isMetaMaskInstalled) {
       const handleDisconnect = (error) => {
-        setErrorMessage('You have been disconnected from the network! Please reload page.');
+        setErrorMessage('You are disconnected from the network! Please cancel the network request in MetaMask.');
         console.error('User disconnected from network', error);
       };
   
@@ -222,33 +222,41 @@ function App() {
     isMintBtn = true;
   }
 
+  const styleNetworkAndAccount = "border border-inherit bg-white h-9 w-40 rounded-xl text-center py-1";
+  const styleBtn = "mt-20 bg-gradient-to-r from-red-600 via-pink-400 to-indigo-500 hover:from-red-500 hover:via-pink-400 hover:to-indigo-400 disabled:from-red-200 disabled:via-pink-200 disabled:to-indigo-200 text-white text-xl rounded-2xl h-10 w-60 transition hover:scale-110";
   return (
-    <div className="App">
-      {network}
-      {account && <div>{getDisplayAccount(account)}</div>}
-      <h1>NFT</h1>
-      <h2>PROJECT</h2>
-      
-      {isMintBtn ? (
-        <button
-          disabled={isBtnDisabled || errorMessage}
-          onClick={() => handleMintBtnClick()}>
-            MINT
-        </button>
-      ) : (
-        <button
-          disabled={isBtnDisabled || errorMessage}
-          onClick={() => handleWalletBtnClick()}>
-            CONNECT WALLET
-        </button>
-      )}
+    <div>
+      <div className="flex items-center justify-end space-x-4 mr-4 mt-4">
+        {network && <div className={styleNetworkAndAccount}>{network}</div>}
+        {account && <div className={styleNetworkAndAccount}>{getDisplayAccount(account)}</div>}
+      </div>
+      <h1 className="text-5xl text-center font-light mt-32">NFT PROJECT</h1>
+      <div className="flex flex-col items-center">
+        {isMintBtn ? (
+          <button
+            disabled={isBtnDisabled || errorMessage}
+            onClick={() => handleMintBtnClick()}
+            className={styleBtn}>
+              MINT
+          </button>
+        ) : (
+          <button
+            disabled={isBtnDisabled || errorMessage}
+            onClick={() => handleWalletBtnClick()}
+            className={styleBtn}>
+              CONNECT WALLET
+          </button>
+        )}
 
-      {errorMessage && <div>{errorMessage}</div>}
-      
-      <p>Minted: {supply}/50</p>
-      {/* {mintingLimitMsg} */}
-      <div>description</div>
-      <div><a href="">OpenSea</a> | <a href="">Contract</a></div>
+        {errorMessage && <div className="mt-10">{errorMessage}</div>}
+        
+        <div className="mt-2">Minted: {supply}/50</div>
+        <div>description</div>
+        <div className="flex items-center justify-end space-x-4 mr-4 mt-4">
+           <a href="" className="border border-inherit bg-white rounded-xl">OpenSea</a>
+           <a href="">Contract</a>
+        </div>
+      </div>
     </div>
   );
 }
