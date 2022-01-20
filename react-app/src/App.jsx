@@ -34,9 +34,7 @@ const shortenAccount = (account) => {
 function App() {
   const [provider, setProvider] = useState(null);
   const [account, setAccount] = useState(null);
-  const [network, setNetwork] = useState(null);
   const [supply, setSupply] = useState(null);
-  const [isMintBtn, setIsMintBtn] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [isBtnDisabled, setIsBtnDisabled] = useState(false);
   const [isCorrectChainId, setIsCorrectChainId] = useState(null);
@@ -95,8 +93,6 @@ function App() {
 
           setProvider(provider);
           setAccount(account);
-          setIsMintBtn(true);
-          setNetwork('Localhost 8545');
         }
       }
 
@@ -109,10 +105,8 @@ function App() {
       const handleAccountsChanged = async (accounts) => {
         if (accounts.length === 0) {
           setProvider(null);
-          setIsMintBtn(false);
           setErrorMessage(null);
           setAccount(null);
-          setNetwork(null);
           setIsBtnDisabled(false);
         }
         else if (isCorrectChainId === false) {
@@ -124,8 +118,6 @@ function App() {
           setProvider(provider);
           setAccount(account);
           setErrorMessage(null);
-          setIsMintBtn(true);
-          setNetwork('Localhost 8545');
         }
       };
 
@@ -222,9 +214,16 @@ function App() {
     }
   };
 
+  let network;
+  let isMintBtn = false;
+  if (isMetaMaskInstalled && isCorrectChainId && account) {
+    network = 'Localhost 8545'; // TODO: change later
+    isMintBtn = true;
+  }
+
   return (
     <div className="App">
-      {network && <div>{network}</div>}
+      {network}
       {account && <div>{shortenAccount(account)}</div>}
       <h1>NFT</h1>
       <h2>PROJECT</h2>
