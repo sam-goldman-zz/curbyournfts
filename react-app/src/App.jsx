@@ -25,9 +25,10 @@ const revertMessages = {
 
 const isMetaMaskInstalled = Boolean(window.ethereum && window.ethereum.isMetaMask);
 
-const shortenAccount = (account) => {
-  const firstHalf = account.slice(0, 6);
-  const secondHalf = account.slice(-4);
+const getDisplayAccount = (account) => {
+  const checksumAccount = ethers.utils.getAddress(account);
+  const firstHalf = checksumAccount.slice(0, 6);
+  const secondHalf = checksumAccount.slice(-4);
   return `${firstHalf}...${secondHalf}`;
 };
 
@@ -224,7 +225,7 @@ function App() {
   return (
     <div className="App">
       {network}
-      {account && <div>{shortenAccount(account)}</div>}
+      {account && <div>{getDisplayAccount(account)}</div>}
       <h1>NFT</h1>
       <h2>PROJECT</h2>
       
