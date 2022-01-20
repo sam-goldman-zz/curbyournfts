@@ -41,7 +41,11 @@ function App() {
   const [isBtnDisabled, setIsBtnDisabled] = useState(false);
   const [isCorrectChainId, setIsCorrectChainId] = useState(null);
 
-  // const contract = new ethers.Contract(contractAddress, MyNFT.abi, providerOrSigner);
+  let contract;
+  if (provider) {
+    const signer = provider.getSigner();
+    contract = new ethers.Contract(contractAddress, MyNFT.abi, signer);
+  }
 
   useEffect(() => {
     const getSupply = async () => {
@@ -109,6 +113,7 @@ function App() {
           setErrorMessage(null);
           setAccount(null);
           setNetwork(null);
+          setIsBtnDisabled(false);
         }
         else if (isCorrectChainId === false) {
           setErrorMessage('Please connect to the correct network!');
@@ -179,6 +184,35 @@ function App() {
     setIsBtnDisabled(false);
   }
 
+  const handleMintBtnClick = async () => {
+    if (isBtnDisabled) {
+      return;
+    }
+    setIsBtnDisabled(true);
+
+    try {
+      await contract.mintPublic();
+      const newSupply = parseInt(supply) + 1;
+      setSupply(newSupply);
+    } catch (error) {
+      console.log(error);
+      if (error.code === -32603) {
+        let message;
+        if (error.hasOwnProperty('data') && error.data.hasOwnProperty('message')) {
+          message = error.data.message;
+        }
+        else if (error.hasOwnProperty('message')) {
+          message = error.message;
+        }
+
+        if (message.includes(revertMessages.AddressReachedPublicMintingLimit)) {
+          setErrorMessage('You have reached your minting limit!');
+        }
+      }
+    }
+    setIsBtnDisabled(false);
+  };
+
   const handleChainId = (chainId) => {
     if (chainId === correctChainId) {
       setIsCorrectChainId(true);
@@ -197,12 +231,13 @@ function App() {
       
       {isMintBtn ? (
         <button
-          disabled={isBtnDisabled}>
+          disabled={isBtnDisabled || errorMessage}
+          onClick={() => handleMintBtnClick()}>
             MINT
         </button>
       ) : (
         <button
-          disabled={isBtnDisabled}
+          disabled={isBtnDisabled || errorMessage}
           onClick={() => handleWalletBtnClick()}>
             CONNECT WALLET
         </button>
