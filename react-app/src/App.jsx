@@ -2,6 +2,13 @@ import { ethers } from 'ethers';
 import { useState, useEffect } from 'react';
 import MyNFT from './artifacts/contracts/MyNFT.sol/MyNFT.json';
 
+import TokenSupply from "./TokenSupply.jsx";
+import UserAccount from "./UserAccount.jsx";
+import Network from "./Network.jsx";
+import Button from "./Button.jsx";
+import ErrorMessage from "./ErrorMessage.jsx";
+import Description from './Description';
+
 // TODO: change
 const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
 
@@ -18,39 +25,13 @@ const revertMessages = {
 // Returns true if user has MetaMask installed on their browser
 const isMetaMaskInstalled = Boolean(window.ethereum && window.ethereum.isMetaMask);
 
-// Returns a shortened version of the user's account
-const getDisplayAccount = (account) => {
-  const checksumAccount = ethers.utils.getAddress(account); // converts account from lowercase to camelcase
-  const firstHalf = checksumAccount.slice(0, 6);
-  const secondHalf = checksumAccount.slice(-4);
-  return `${firstHalf}...${secondHalf}`;
-};
-
-function App() {
+const App = () => {
   const [provider, setProvider] = useState(null);
   const [account, setAccount] = useState(null);
   const [supply, setSupply] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const [isCorrectChainId, setIsCorrectChainId] = useState(null);
   const [isBtnDisabled, setIsBtnDisabled] = useState(false);
-
-  // Creates an initial connection to the blockchain to get `totalSupply`.
-  // Will return a value whether or not the user has MetaMask installed.
-  useEffect(() => {
-    const getSupply = async () => {
-      const provider = new ethers.providers.JsonRpcProvider();
-      const contract = new ethers.Contract(contractAddress, MyNFT.abi, provider);
-
-      try {
-        let supply = await contract.totalSupply();
-        setSupply(parseInt(supply));
-      } catch (e) {
-        console.error('Error calling totalSupply without MetaMask installed', e);
-      }
-    };
-
-    getSupply();
-  }, []);
 
   // Detects if the user is already connected to the network on MetaMask
   useEffect(() => {
@@ -244,44 +225,30 @@ function App() {
     isMintBtn = true;
   }
 
-  const styleNetworkAndAccount = "border border-inherit bg-white h-9 w-40 rounded-xl text-center py-1";
-  const styleBtn = "mt-20 bg-gradient-to-r from-red-600 via-pink-400 to-indigo-500 hover:from-red-500 hover:via-pink-400 hover:to-indigo-400 disabled:from-red-200 disabled:via-pink-200 disabled:to-indigo-200 text-white text-xl rounded-2xl h-10 w-60 transition hover:scale-110";
   return (
     <div>
-      <div className="flex items-center justify-end space-x-4 mr-4 mt-4">
-        {network && <div className={styleNetworkAndAccount}>{network}</div>}
-        {account && <div className={styleNetworkAndAccount}>{getDisplayAccount(account)}</div>}
-      </div>
+      {/* <Header ?/> */}
+
+      {/* <div className="flex items-center justify-end space-x-4 mr-4 mt-4">
+          {network && <Network network={network} />}
+          {account && <UserAccount account={account} />}
+      </div> */}
+
 
       <h1 className="text-5xl text-center font-light mt-32">NFT PROJECT</h1>
 
       <div className="flex flex-col items-center">
-        {isMintBtn ? (
-          <button
-            disabled={isBtnDisabled || errorMessage}
-            onClick={() => handleMintBtnClick()}
-            className={styleBtn}>
-              MINT
-          </button>
-        ) : (
-          <button
-            disabled={isBtnDisabled || errorMessage}
-            onClick={() => handleWalletBtnClick()}
-            className={styleBtn}>
-              CONNECT WALLET
-          </button>
-        )}
-
-        {errorMessage && <div className="mt-10">{errorMessage}</div>}
-        
-        {/* TODO: change number of max tokens */}
-        <div className="mt-2">Minted: {supply}/4</div>
-
-        {/* TODO: the total number of nft's is... */}
-        <div>description</div>
+        <Button
+          disabled={isBtnDisabled || errorMessage}
+          onClick={isMintBtn ? () => handleMintBtnClick() : () => handleWalletBtnClick()}
+          name={isMintBtn ? 'MINT' : 'CONNECT WALLET'}
+        />
+        <ErrorMessage message={errorMessage}/>
+        <TokenSupply supply={supply} setSupply={setSupply} />
+        <Description />
 
         <div className="flex items-center justify-end space-x-4 mr-4 mt-4">
-           <a href="" className="border border-inherit bg-white rounded-xl">OpenSea</a>
+           <a href="" className="absolute bottom-0 border border-inherit bg-white rounded-xl">OpenSea</a>
            <a href="">Contract</a>
         </div>
       </div>
