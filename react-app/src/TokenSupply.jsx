@@ -1,9 +1,8 @@
 import { ethers } from 'ethers';
 import { useEffect } from 'react';
-import MyNFT from './artifacts/contracts/MyNFT.sol/MyNFT.json';
+import Token from './artifacts/contracts/CurbYourNFT.sol/CurbYourNFT.json';
 
-// TODO: change
-const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
+const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
 
 const TokenSupply = ({supply, setSupply}) => {
   // This effect creates an initial connection to the blockchain to get `totalSupply`.
@@ -11,7 +10,7 @@ const TokenSupply = ({supply, setSupply}) => {
   useEffect(() => {
     const getSupply = async () => {
       const provider = new ethers.providers.JsonRpcProvider();
-      const contract = new ethers.Contract(contractAddress, MyNFT.abi, provider);
+      const contract = new ethers.Contract(contractAddress, Token.abi, provider);
 
       try {
         let newSupply = await contract.totalSupply();
@@ -26,8 +25,8 @@ const TokenSupply = ({supply, setSupply}) => {
 
   return (
     <div
-      className="mt-2">
-        Minted: {supply}/4
+      className="mt-2 text-yellow-400 text-lg">
+        Minted: {supply}/40
     </div>
   );
 }

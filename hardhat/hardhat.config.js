@@ -12,7 +12,7 @@ module.exports = {
         count: 60
       },
     },
-    ropsten: {
+    rinkeby: {
       url: process.env.ALCHEMY_API_URL,
       accounts: [`0x${process.env.PRIVATE_KEY}`],
     },

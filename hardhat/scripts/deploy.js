@@ -1,4 +1,4 @@
-const temporaryMaxPublic = 30;
+const temporaryMaxPublic = 4;
 const adminAddresses = [
   "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
@@ -6,11 +6,11 @@ const adminAddresses = [
 ];
 
 async function main () {
-  const MyNFT = await ethers.getContractFactory('MyNFT');
-  console.log('Deploying MyNFT...');
-  const myNFT = await MyNFT.deploy(temporaryMaxPublic, adminAddresses);
-  await myNFT.deployed();
-  console.log('myNFT deployed to:', myNFT.address);
+  const Token = await ethers.getContractFactory('CurbYourNFT');
+  console.log('Deploying Token...');
+  const token = await Token.deploy(temporaryMaxPublic, adminAddresses);
+  await token.deployed();
+  console.log('Token deployed to:', token.address);
 }
 
 main()

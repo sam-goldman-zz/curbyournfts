@@ -1,4 +1,4 @@
-// test/MyNFT.test.js
+// test/Token.test.js
 // Load dependencies
 const { expect } = require('chai');
 
@@ -7,7 +7,7 @@ const { BN, expectRevert, constants, snapshot } = require('@openzeppelin/test-he
 const { ZERO_ADDRESS } = require('@openzeppelin/test-helpers/src/constants');
 
 // Load compiled artifacts
-const MyNFT = artifacts.require('MyNFT');
+const Token = artifacts.require('CurbYourNFT');
 
 const revertMessages = {
   ConstructorTmpPublicExceedsMaxPublic: "_temporaryMaxPublic cannot be greater than max public value",
@@ -29,11 +29,11 @@ const DEFAULT_ADMIN_ROLE = constants.ZERO_BYTES32;
 
 const temporaryMaxPublic = new BN('30');
 
-const tokenName = "MyNFT";
-const tokenSymbol = "NFT";
+const tokenName = "CurbYourNFT";
+const tokenSymbol = "CURB";
 
 // Start test block
-contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin1, nonAdmin2, ...otherAccounts]) {
+contract('Token', function ([ admin1, admin2, admin3, nonAdmin1, nonAdmin2, ...otherAccounts]) {
   let snapshotA;
   let maxPublic, maxReserved, maxPerPublicAddress;
 
@@ -47,19 +47,19 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin1, nonAdmin2, ...o
   async function mintPublicTokens(numTokens) {
     for (let i = 0; i < numTokens; i++) {
       address = otherAccounts[i];
-      await this.myNFT.mintPublic({ from: address });
+      await this.token.mintPublic({ from: address });
     }
   }
 
   before('deploy contracts', async () => {
-    this.myNFT = await MyNFT.new(
+    this.token = await Token.new(
       temporaryMaxPublic,
       adminAddresses
     );
 
-    maxPublic = await this.myNFT.MAX_PUBLIC();
-    maxReserved = await this.myNFT.MAX_RESERVED();
-    maxPerPublicAddress = await this.myNFT.MAX_PER_PUBLIC_ADDRESS();
+    maxPublic = await this.token.MAX_PUBLIC();
+    maxReserved = await this.token.MAX_RESERVED();
+    maxPerPublicAddress = await this.token.MAX_PER_PUBLIC_ADDRESS();
   });
 
   beforeEach(async () => {
@@ -72,22 +72,22 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin1, nonAdmin2, ...o
 
   describe('constructor', () => {
     it('verify deployment parameters', async () => {
-      expect (await this.myNFT.totalSupply()).to.be.bignumber.equal(_0);
+      expect (await this.token.totalSupply()).to.be.bignumber.equal(_0);
 
-      expect(await this.myNFT.temporaryMaxPublic()).to.be.bignumber.equal(temporaryMaxPublic);
+      expect(await this.token.temporaryMaxPublic()).to.be.bignumber.equal(temporaryMaxPublic);
 
       for (let adminAddress of adminAddresses) {
-        expect(await this.myNFT.hasRole(DEFAULT_ADMIN_ROLE, adminAddress)).to.equal(true);
+        expect(await this.token.hasRole(DEFAULT_ADMIN_ROLE, adminAddress)).to.equal(true);
       };
 
-      expect(await this.myNFT.name()).to.equal(tokenName);
+      expect(await this.token.name()).to.equal(tokenName);
 
-      expect(await this.myNFT.symbol()).to.equal(tokenSymbol);
+      expect(await this.token.symbol()).to.equal(tokenSymbol);
     });
 
     it('require fail - temporary public value exceeds max public value', async () => {
       await expectRevert(
-        MyNFT.new(
+        Token.new(
           maxPublic + 1,
           adminAddresses
         ),
@@ -95,17 +95,17 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin1, nonAdmin2, ...o
       );
 
       // still works with 1 less
-      this.myNFTTemp = await MyNFT.new(
+      this.tokenTemp = await Token.new(
         maxPublic,
         adminAddresses
       );
 
-      expect(await this.myNFTTemp.temporaryMaxPublic()).to.be.bignumber.equal(maxPublic);
+      expect(await this.tokenTemp.temporaryMaxPublic()).to.be.bignumber.equal(maxPublic);
     });
 
     it('require fail - admin addresses length is zero', async () => {
       await expectRevert(
-        MyNFT.new(
+        Token.new(
           temporaryMaxPublic,
           []
         ),
@@ -113,16 +113,16 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin1, nonAdmin2, ...o
       );
 
       // still works with one adminAddress
-      this.myNFTTemp = await MyNFT.new(
+      this.tokenTemp = await Token.new(
         temporaryMaxPublic,
         [adminAddresses[0]]
       );
-      expect(await this.myNFTTemp.temporaryMaxPublic()).to.be.bignumber.equal(temporaryMaxPublic);
+      expect(await this.tokenTemp.temporaryMaxPublic()).to.be.bignumber.equal(temporaryMaxPublic);
     })
 
     it('require fail - admin cannot be zero address', async () => {
       await expectRevert(
-        MyNFT.new(
+        Token.new(
           temporaryMaxPublic,
           [constants.ZERO_ADDRESS]
         ),
@@ -135,47 +135,47 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin1, nonAdmin2, ...o
     const numReservedTokens = new BN('2');
 
     beforeEach(async () => {
-      await this.myNFT.mintReserved(numReservedTokens, { from: admin1 });
+      await this.token.mintReserved(numReservedTokens, { from: admin1 });
     });
 
     it('happy case', async () => {
-      expect(await this.myNFT.totalSupply()).to.be.bignumber.equal(numReservedTokens);
+      expect(await this.token.totalSupply()).to.be.bignumber.equal(numReservedTokens);
 
-      expect(await this.myNFT.balanceOf(admin1)).to.be.bignumber.equal(numReservedTokens);
+      expect(await this.token.balanceOf(admin1)).to.be.bignumber.equal(numReservedTokens);
       
-      expect(await this.myNFT.ownerOf(maxPublic.add(_1))).to.equal(admin1);
-      expect(await this.myNFT.ownerOf(maxPublic.add(_2))).to.equal(admin1);
+      expect(await this.token.ownerOf(maxPublic.add(_1))).to.equal(admin1);
+      expect(await this.token.ownerOf(maxPublic.add(_2))).to.equal(admin1);
     });
 
     it('require fail - number of reserved tokens cannot be zero', async () => {
       await expectRevert(
-        this.myNFT.mintReserved(0, { from: admin1 }),
+        this.token.mintReserved(0, { from: admin1 }),
         revertMessages.NumReservedTokensCannotBeZero
       );
 
       // still works for 1 token
-      await this.myNFT.mintReserved(1, { from: admin1 });
-      expect(await this.myNFT.balanceOf(admin1)).to.be.bignumber.equal(new BN('3'));
+      await this.token.mintReserved(1, { from: admin1 });
+      expect(await this.token.balanceOf(admin1)).to.be.bignumber.equal(new BN('3'));
     })
 
     it('require fail - number of tokens exceeds max reserved', async () => {
       const numReservedTokensRemaining = maxReserved.sub(numReservedTokens);
 
       await expectRevert(
-        this.myNFT.mintReserved(numReservedTokensRemaining.add(_1)),
+        this.token.mintReserved(numReservedTokensRemaining.add(_1)),
         revertMessages.NumReservedTokensExceedsMax
       );
 
       // still works with 1 less
-      await this.myNFT.mintReserved(numReservedTokensRemaining, { from: admin1 });
-      expect(await this.myNFT.balanceOf(admin1)).to.be.bignumber.equal(maxReserved);
+      await this.token.mintReserved(numReservedTokensRemaining, { from: admin1 });
+      expect(await this.token.balanceOf(admin1)).to.be.bignumber.equal(maxReserved);
     })
 
     it('check modifier - non-admin cannot mint reserved tokens', async () => {
       const revertMessageAccessControl = getRevertMessageAccessControl(nonAdmin1);
 
       await expectRevert(
-        this.myNFT.mintReserved(1, { from: nonAdmin1 }),
+        this.token.mintReserved(1, { from: nonAdmin1 }),
         revertMessageAccessControl
       );
     })
@@ -183,36 +183,36 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin1, nonAdmin2, ...o
 
   describe('mintPublic', () => {
     it('happy case', async () => {
-      await this.myNFT.mintPublic({ from: nonAdmin1 });
-      await this.myNFT.mintPublic({ from: nonAdmin2 });
+      await this.token.mintPublic({ from: nonAdmin1 });
+      await this.token.mintPublic({ from: nonAdmin2 });
 
-      expect(await this.myNFT.totalSupply()).to.be.bignumber.equal(_2);
+      expect(await this.token.totalSupply()).to.be.bignumber.equal(_2);
 
-      expect(await this.myNFT.balanceOf(nonAdmin1)).to.be.bignumber.equal(_1);
-      expect(await this.myNFT.balanceOf(nonAdmin2)).to.be.bignumber.equal(_1);
+      expect(await this.token.balanceOf(nonAdmin1)).to.be.bignumber.equal(_1);
+      expect(await this.token.balanceOf(nonAdmin2)).to.be.bignumber.equal(_1);
 
-      expect(await this.myNFT.ownerOf(_1)).to.equal(nonAdmin1);
-      expect(await this.myNFT.ownerOf(_2)).to.equal(nonAdmin2);
+      expect(await this.token.ownerOf(_1)).to.equal(nonAdmin1);
+      expect(await this.token.ownerOf(_2)).to.equal(nonAdmin2);
     })
 
     it('require fail - address has reached public minting limit', async () => {
       for (let i = 0; i < maxPerPublicAddress; i++) {
-        await this.myNFT.mintPublic({ from: nonAdmin1 });
+        await this.token.mintPublic({ from: nonAdmin1 });
       }
 
       await expectRevert(
-        this.myNFT.mintPublic({ from: nonAdmin1 }),
+        this.token.mintPublic({ from: nonAdmin1 }),
         revertMessages.AddressReachedPublicMintingLimit
       );
     })
 
     it('require fail - maximum number of public tokens minted', async () => {
-      await this.myNFT.setTemporaryMaxPublic(maxPublic, { from: admin1 });
+      await this.token.setTemporaryMaxPublic(maxPublic, { from: admin1 });
 
       await mintPublicTokens(maxPublic);
 
       await expectRevert(
-        this.myNFT.mintPublic({ from: nonAdmin1 }),
+        this.token.mintPublic({ from: nonAdmin1 }),
         revertMessages.MaxNumberPublicTokensMinted
       );
     });
@@ -221,7 +221,7 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin1, nonAdmin2, ...o
       await mintPublicTokens(temporaryMaxPublic);
 
       await expectRevert(
-        this.myNFT.mintPublic({ from: nonAdmin1 }),
+        this.token.mintPublic({ from: nonAdmin1 }),
         revertMessages.PublicTokensExceedsTmpMax
       );
     })
@@ -231,19 +231,19 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin1, nonAdmin2, ...o
     it('happy case', async () => {
       const newTemporaryMaxPublic = new BN('35');
 
-      await this.myNFT.setTemporaryMaxPublic(newTemporaryMaxPublic, { from: admin1 });
-      expect(await this.myNFT.temporaryMaxPublic()).to.be.bignumber.equal(newTemporaryMaxPublic);
+      await this.token.setTemporaryMaxPublic(newTemporaryMaxPublic, { from: admin1 });
+      expect(await this.token.temporaryMaxPublic()).to.be.bignumber.equal(newTemporaryMaxPublic);
     })
 
     it('require fail - new temporary public value cannot exceed max public value', async () => {
       await expectRevert(
-        this.myNFT.setTemporaryMaxPublic(maxPublic.add(_1), { from: admin1 }),
+        this.token.setTemporaryMaxPublic(maxPublic.add(_1), { from: admin1 }),
         revertMessages.NewTmpMaxExceedsMaxPublic
       );
 
       // still works when temporaryMaxPublic = maxPublic
-      await this.myNFT.setTemporaryMaxPublic(maxPublic, { from: admin1 });
-      expect(await this.myNFT.temporaryMaxPublic()).to.be.bignumber.equal(maxPublic)
+      await this.token.setTemporaryMaxPublic(maxPublic, { from: admin1 });
+      expect(await this.token.temporaryMaxPublic()).to.be.bignumber.equal(maxPublic)
     })
 
     it('check modifier - non-admin cannot set new temporaryMaxPublic', async () => {
@@ -252,7 +252,7 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin1, nonAdmin2, ...o
       getRevertMessageAccessControl(address);
 
       await expectRevert(
-        this.myNFT.setTemporaryMaxPublic(maxPublic, { from: nonAdmin1 }),
+        this.token.setTemporaryMaxPublic(maxPublic, { from: nonAdmin1 }),
         revertMessageAccessControl
       );
     })
@@ -260,18 +260,18 @@ contract('MyNFT', function ([ admin1, admin2, admin3, nonAdmin1, nonAdmin2, ...o
 
   describe('mint all tokens', () => {
     it('happy case - mint all tokens', async () => {
-      await this.myNFT.setTemporaryMaxPublic(maxPublic, { from: admin1 });
+      await this.token.setTemporaryMaxPublic(maxPublic, { from: admin1 });
 
       await mintPublicTokens(maxPublic);
 
-      await this.myNFT.mintReserved(maxReserved, { from: admin1 });
+      await this.token.mintReserved(maxReserved, { from: admin1 });
   
-      expect(await this.myNFT.totalSupply()).to.be.bignumber.equal(maxPublic.add(maxReserved));
+      expect(await this.token.totalSupply()).to.be.bignumber.equal(maxPublic.add(maxReserved));
     })
   })
 
   // it('store emits an event', async function () {
-  //   const receipt = await this.myNFT.store(value, { from: owner });
+  //   const receipt = await this.token.store(value, { from: owner });
 
   //   // Test that a ValueChanged event was emitted with the new value
   //   expectEvent(receipt, 'ValueChanged', { value: value });

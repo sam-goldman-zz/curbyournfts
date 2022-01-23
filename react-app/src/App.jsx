@@ -1,19 +1,13 @@
 import { ethers } from 'ethers';
 import { useState, useEffect } from 'react';
-import MyNFT from './artifacts/contracts/MyNFT.sol/MyNFT.json';
-
+import Token from './artifacts/contracts/CurbYourNFT.sol/CurbYourNFT.json';
 import TokenSupply from "./TokenSupply.jsx";
-import UserAccount from "./UserAccount.jsx";
-import Network from "./Network.jsx";
 import Button from "./Button.jsx";
-import ErrorMessage from "./ErrorMessage.jsx";
-import Description from './Description';
+import UserAccount from "./UserAccount.jsx";
+import larry from "./larry.jpg";
 
-// TODO: change
-const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
-
-// TODO: change correctChainId when you switch from localhost
-const correctChainId = '0x539';
+const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
+const correctChainId = process.env.REACT_APP_CHAIN_ID;
 
 // Error messages returned by the smart contract
 const revertMessages = {
@@ -22,7 +16,6 @@ const revertMessages = {
   PublicTokensExceedsTmpMax: "there are currently no more public tokens to mint",
 };
 
-// Returns true if user has MetaMask installed on their browser
 const isMetaMaskInstalled = Boolean(window.ethereum && window.ethereum.isMetaMask);
 
 const App = () => {
@@ -73,7 +66,7 @@ const App = () => {
     }
 
     // Case 2:
-    // In most cases, the page detects the provider after the effect is initially called.
+    // Most of the time, the page detects the provider after the effect is initially called.
     // When this happens, the `connect` event will be emitted shortly after the effect finishes running.
     const handleConnect = (connectInfo) => {
       const chainId = connectInfo.chainId;
@@ -216,7 +209,7 @@ const App = () => {
   let contract;
   if (provider) {
     const signer = provider.getSigner();
-    contract = new ethers.Contract(contractAddress, MyNFT.abi, signer);
+    contract = new ethers.Contract(contractAddress, Token.abi, signer);
   }
 
   let network, isMintBtn;
@@ -225,33 +218,31 @@ const App = () => {
     isMintBtn = true;
   }
 
+  // "flex items-center justify-end space-x-4 mr-4 mt-4"
   return (
-    <div>
-      {/* <Header ?/> */}
-
-      {/* <div className="flex items-center justify-end space-x-4 mr-4 mt-4">
-          {network && <Network network={network} />}
-          {account && <UserAccount account={account} />}
-      </div> */}
-
-
-      <h1 className="text-5xl text-center font-light mt-32">NFT PROJECT</h1>
-
-      <div className="flex flex-col items-center">
-        <Button
-          disabled={isBtnDisabled || errorMessage}
-          onClick={isMintBtn ? () => handleMintBtnClick() : () => handleWalletBtnClick()}
-          name={isMintBtn ? 'MINT' : 'CONNECT WALLET'}
-        />
-        <ErrorMessage message={errorMessage}/>
-        <TokenSupply supply={supply} setSupply={setSupply} />
-        <Description />
-
-        <div className="flex items-center justify-end space-x-4 mr-4 mt-4">
-           <a href="" className="absolute bottom-0 border border-inherit bg-white rounded-xl">OpenSea</a>
-           <a href="">Contract</a>
-        </div>
+    <div className="h-screen bg-black">
+      <div className="h-12 flex justify-end px-4 pt-4">
+        {network && <div className="border bg-white mr-2 rounded-xl px-2 py-1 transition hover:bg-yellow-200">{network}</div>}
+        {account && <UserAccount account={account} />}
       </div>
+        <div className="main flex flex-col items-center justify-between">
+          <h1 className="pt-24 font-bold text-5xl text-yellow-400">Curb Your NFTs</h1>
+          <img className="h-40 w-36 mt-4 rounded-xl" src={larry} alt="Larry" />
+          <Button
+            disabled={isBtnDisabled || errorMessage}
+            onClick={isMintBtn ? () => handleMintBtnClick() : () => handleWalletBtnClick()}
+            name={isMintBtn ? 'MINT' : 'CONNECT WALLET'}
+          />
+          <TokenSupply supply={supply} setSupply={setSupply} />
+          <div className="h-12 text-yellow-400 text-lg">{errorMessage}</div>
+          <div className="w-80 p-2 mb-20 text-center text-sm bg-white rounded-2xl border transition hover:bg-yellow-200">
+            Curb Your NFTs is a project to put quotes from TV's favorite grouch, Larry David, onto the blockchain. There are 50 NFTs total, 10 of which are reserved. Each is free to mint, except for the price of gas. Available on the Rinkeby testnet only.
+          </div>
+          <div className="mb-8">
+            <a href="" className="border border-inherit bg-white rounded-lg px-2 py-1 mx-1 transition hover:bg-yellow-200">OpenSea</a>
+            <a href="" className="border border-inherit bg-white rounded-lg px-2 py-1 mx-1 transition hover:bg-yellow-200">Contract</a>
+          </div>
+        </div>
     </div>
   );
 }

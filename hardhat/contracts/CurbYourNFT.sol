@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
-contract MyNFT is 
+contract CurbYourNFT is 
     ERC721URIStorage,
     ERC721Burnable,
     AccessControl,
@@ -22,14 +22,14 @@ contract MyNFT is
 
     uint256 public constant MAX_PUBLIC = 40;
     uint256 public constant MAX_RESERVED = 10;
-    uint256 public constant MAX_PER_PUBLIC_ADDRESS = 3;
+    uint256 public constant MAX_PER_PUBLIC_ADDRESS = 2;
 
     uint256 public temporaryMaxPublic;
 
     constructor(
         uint256 _temporaryMaxPublic,
         address[] memory _adminAddresses
-    ) ERC721("MyNFT", "NFT") {
+    ) ERC721("CurbYourNFT", "CURB") {
         require(_temporaryMaxPublic <= MAX_PUBLIC, "_temporaryMaxPublic cannot be greater than max public value");
         require(_adminAddresses.length > 0, "_adminAddresses length cannot be zero");
 
