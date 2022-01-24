@@ -1,8 +1,6 @@
-const temporaryMaxPublic = 4;
+const temporaryMaxPublic = 40;
 const adminAddresses = [
-  "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-  "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-  "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC"
+  "0x4856e043a1F2CAA8aCEfd076328b4981Aca91000",
 ];
 
 async function main () {
@@ -10,7 +8,9 @@ async function main () {
   console.log('Deploying Token...');
   const token = await Token.deploy(temporaryMaxPublic, adminAddresses);
   await token.deployed();
-  console.log('Token deployed to:', token.address);
+  const address = token.address;
+  console.log('Token deployed to:', address);
+
 }
 
 main()

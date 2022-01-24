@@ -1,4 +1,34 @@
 .exit
+o.description
+o.name
+  }
+    "description": "I just - I can't stand the sound of the human voice."
+    "name": "Human Voice",
+const o = {
+.exit
+await token.tokenURI(41);
+await token.tokenURI();
+await token.baseTokenURI();
+  const token = await Token.attach(contractAddress);
+  const Token = await ethers.getContractFactory('CurbYourNFT');
+  const contractAddress = '0x4a3844F8B63ffb024aE7b5d3BD613f8AD7bcB43b';
+.exit
+await token.temporaryMaxPublic();
+  const token = await T.attach(contractAddress);
+  const contractAddress = '0x4a3844F8B63ffb024aE7b5d3BD613f8AD7bcB43b';
+const token = await T.attach(contractAddress);
+const T= await ethers.getContractFactory('CurbYourNFT');
+const T = const Token = await ethers.getContractFactory('CurbYourNFT');
+const Token = await ethers.getContractFactory('CurbYourNFT');
+.exit
+const Token = await ethers.getContractFactory('CurbYourNFT');
+.exit
+await token.baseTokenURI();
+token
+const token = await Token.attach(contractAddress);
+const Token = await ethers.getContractFactory('CurbYourNFT');
+const contractAddress = '0x4a3844F8B63ffb024aE7b5d3BD613f8AD7bcB43b';
+.exit
 new BigNumber
 supply.toString();
 supply.toString

@@ -1,14 +1,12 @@
 async function main () {
-  const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
+  const contractAddress = '0x4a3844F8B63ffb024aE7b5d3BD613f8AD7bcB43b';
   const Token = await ethers.getContractFactory('CurbYourNFT');
   const token = await Token.attach(contractAddress);
 
-  // Sends a transaction to mint a public token
-  await token.mintPublic();
+  const baseUri = "https://bafybeih6gclhqd3mlwozlwrk6o7sgdsylaok2atzr6ujdzjqapieqximj4.ipfs.dweb.link/metadata/";
+  await token.setBaseTokenURI(baseUri);
 
-  // Finds the owner of the public token that was just minted
-  const owner = await token.ownerOf(1);
-  console.log('Owner: ', owner);
+  console.log(await token.tokenURI(41));
 }
 
 main()

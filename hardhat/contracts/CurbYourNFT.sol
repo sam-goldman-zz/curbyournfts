@@ -8,7 +8,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
 contract CurbYourNFT is 
-    ERC721URIStorage,
     ERC721Burnable,
     AccessControl,
     Ownable
@@ -25,6 +24,7 @@ contract CurbYourNFT is
     uint256 public constant MAX_PER_PUBLIC_ADDRESS = 2;
 
     uint256 public temporaryMaxPublic;
+    string public baseTokenURI;
 
     constructor(
         uint256 _temporaryMaxPublic,
@@ -71,12 +71,16 @@ contract CurbYourNFT is
         return _reservedTokenIdTracker.current() + _publicTokenIdTracker.current();
     }
 
-    function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
+    function _burn(uint256 tokenId) internal override {
         super._burn(tokenId);
     }
 
-    function tokenURI(uint256 tokenId) public view override(ERC721, ERC721URIStorage) returns (string memory) {
-        return super.tokenURI(tokenId);
+    function _baseURI() internal view virtual override returns (string memory) {
+        return baseTokenURI;
+    }
+
+    function setBaseTokenURI(string memory _baseTokenURI) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        baseTokenURI = _baseTokenURI;
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(AccessControl, ERC721) returns (bool) {

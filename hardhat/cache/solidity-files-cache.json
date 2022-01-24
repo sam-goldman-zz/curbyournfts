@@ -588,8 +588,8 @@
       ]
     },
     "/Users/samgoldman/projects/smart-contracts/nft-project/hardhat/contracts/CurbYourNFT.sol": {
-      "lastModificationDate": 1642899010260,
-      "contentHash": "23c558d86223fa7a8553616af8d06599",
+      "lastModificationDate": 1642999950879,
+      "contentHash": "db3b451a72506ab6541c37eca67149a8",
       "sourceName": "contracts/CurbYourNFT.sol",
       "solcConfig": {
         "version": "0.8.0",
