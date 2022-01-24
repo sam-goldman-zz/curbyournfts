@@ -1,4 +1,4 @@
-const style = "mt-4 bg-yellow-400 disabled:bg-yellow-200 text-white text-xl rounded-lg h-10 w-60 transition hover:scale-110";
+const style = "mt-4 bg-yellow-400 disabled:bg-yellow-200 disabled:text-slate-300 text-black text-xl rounded-lg h-10 w-60 transition hover:scale-110";
 
 const Button = (props) => {
   return (

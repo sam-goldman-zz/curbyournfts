@@ -6,8 +6,8 @@ import Button from "./Button.jsx";
 import UserAccount from "./UserAccount.jsx";
 import larry from "./larry.jpg";
 
-const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
-const correctChainId = process.env.REACT_APP_CHAIN_ID;
+const contractAddress = '0x4a3844F8B63ffb024aE7b5d3BD613f8AD7bcB43b';
+const correctChainId = '0x4';
 
 // Error messages returned by the smart contract
 const revertMessages = {
@@ -22,7 +22,7 @@ const App = () => {
   const [provider, setProvider] = useState(null);
   const [account, setAccount] = useState(null);
   const [supply, setSupply] = useState(null);
-  const [errorMessage, setErrorMessage] = useState(null);
+  const [alert, setAlert] = useState(null);
   const [isCorrectChainId, setIsCorrectChainId] = useState(null);
   const [isBtnDisabled, setIsBtnDisabled] = useState(false);
 
@@ -87,19 +87,19 @@ const App = () => {
       const handleAccountsChanged = async (accounts) => {
         if (accounts.length === 0) {
           setProvider(null);
-          setErrorMessage(null);
+          setAlert(null);
           setAccount(null);
           setIsBtnDisabled(false);
         }
         else if (isCorrectChainId === false) {
-          setErrorMessage('Please connect to the correct network!');
+          setAlert('Please connect to the correct network!');
         }
         else {
           const account = accounts[0];
           const provider = new ethers.providers.Web3Provider(window.ethereum);
           setProvider(provider);
           setAccount(account);
-          setErrorMessage(null);
+          setAlert(null);
         }
       };
 
@@ -129,7 +129,7 @@ const App = () => {
     }
 
     const handleDisconnect = (error) => {
-      setErrorMessage('You are disconnected from the network! Please cancel the network request in MetaMask.');
+      setAlert('You are disconnected from the network! Please cancel the network request in MetaMask.');
       console.error('User disconnected from network', error);
     };
 
@@ -145,7 +145,7 @@ const App = () => {
     setIsBtnDisabled(true);
 
     if (!isMetaMaskInstalled) {
-      setErrorMessage('Please install MetaMask, then refresh this page!');
+      setAlert('Please install MetaMask, then refresh this page!');
     }
     else {
       try {
@@ -153,7 +153,7 @@ const App = () => {
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
 
         if (accounts > 0 && isCorrectChainId === false) {
-          setErrorMessage('Please connect to the correct network!');
+          setAlert('Please connect to the correct network!');
         }
       } catch (e) {
         console.error("Error when requesting user's MetaMask account", e);
@@ -172,6 +172,14 @@ const App = () => {
       await contract.mintPublic();
       const newSupply = parseInt(supply) + 1;
       setSupply(newSupply);
+      const link = 'https://testnets.opensea.io/assets/0x4a3844f8b63ffb024ae7b5d3bd613f8ad7bcb43b/' + supply;
+      const embeddedLink = <a
+        href={link}
+        target="_blank"
+        className="underline">
+          Woohoo! View your NFT here.
+      </a>
+      setAlert(embeddedLink);
     } catch (error) {
       if (error.code === -32603) {
         let message;
@@ -183,20 +191,20 @@ const App = () => {
         }
 
         if (message.includes(revertMessages.AddressReachedPublicMintingLimit)) {
-          setErrorMessage('You have reached your minting limit!');
+          setAlert('You have reached your minting limit!');
         }
         else if (message.includes(revertMessages.PublicTokensExceedsTmpMax)) {
-          setErrorMessage('There are currently no more NFTs to mint. Check back later!');
+          setAlert('There are currently no more NFTs to mint. Check back later!');
         }
         else if (message.includes(revertMessages.MaxNumberPublicTokensMinted)) {
-          setErrorMessage('There are no more NFTs to mint. Sorry!');
+          setAlert('There are no more NFTs to mint. Sorry!');
         }
       }
     }
     setIsBtnDisabled(false);
   };
 
-  // The correct chain ID is 0x539 for Localhost and 0x4 for Rinkeby
+  // The correct chain ID is 0x4 for Rinkeby
   const handleChainId = (chainId) => {
     if (chainId === correctChainId) {
       setIsCorrectChainId(true);
@@ -214,11 +222,10 @@ const App = () => {
 
   let network, isMintBtn;
   if (isMetaMaskInstalled && isCorrectChainId && account) {
-    network = 'Localhost 8545'; // TODO: change later
+    network = 'Rinkeby Network';
     isMintBtn = true;
   }
 
-  // "flex items-center justify-end space-x-4 mr-4 mt-4"
   return (
     <div className="h-screen bg-black">
       <div className="h-12 flex justify-end px-4 pt-4">
@@ -226,21 +233,21 @@ const App = () => {
         {account && <UserAccount account={account} />}
       </div>
         <div className="main flex flex-col items-center justify-between">
-          <h1 className="pt-24 font-bold text-5xl text-yellow-400">Curb Your NFTs</h1>
+          <h1 className="pt-16 font-bold text-5xl text-yellow-400">Curb Your NFTs</h1>
           <img className="h-40 w-36 mt-4 rounded-xl" src={larry} alt="Larry" />
           <Button
-            disabled={isBtnDisabled || errorMessage}
+            disabled={isBtnDisabled || alert}
             onClick={isMintBtn ? () => handleMintBtnClick() : () => handleWalletBtnClick()}
             name={isMintBtn ? 'MINT' : 'CONNECT WALLET'}
           />
           <TokenSupply supply={supply} setSupply={setSupply} />
-          <div className="h-12 text-yellow-400 text-lg">{errorMessage}</div>
+          <div className="h-12 text-yellow-400 text-lg">{alert}</div>
           <div className="w-80 p-2 mb-20 text-center text-sm bg-white rounded-2xl border transition hover:bg-yellow-200">
-            Curb Your NFTs is a project to put quotes from TV's favorite grouch, Larry David, onto the blockchain. There are 50 NFTs total, 10 of which are reserved. Each is free to mint, except for the price of gas. Available on the Rinkeby testnet only.
+            Curb Your NFTs is a project to put quotes from TV's favorite grouch, Larry David, onto the blockchain. There are 50 NFTs total, 10 of which are reserved. Each one is free to mint, except for the price of gas. Available on the Rinkeby testnet only.
           </div>
-          <div className="mb-8">
-            <a href="" className="border border-inherit bg-white rounded-lg px-2 py-1 mx-1 transition hover:bg-yellow-200">OpenSea</a>
-            <a href="" className="border border-inherit bg-white rounded-lg px-2 py-1 mx-1 transition hover:bg-yellow-200">Contract</a>
+          <div className="mb-4">
+            <a href="https://testnets.opensea.io/collection/curbyournft" className="border border-inherit bg-white rounded-lg px-2 py-1 mx-1 transition hover:bg-yellow-200">OpenSea</a>
+            <a href="https://rinkeby.etherscan.io/address/0x4a3844F8B63ffb024aE7b5d3BD613f8AD7bcB43b" className="border border-inherit bg-white rounded-lg px-2 py-1 mx-1 transition hover:bg-yellow-200">Contract</a>
           </div>
         </div>
     </div>
