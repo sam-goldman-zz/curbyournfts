@@ -1,2 +1,2 @@
 # nft-project
-https://curbyournft.herokuapp.com/ (Takes a little while to load)
+https://curbyournft.herokuapp.com/ (May take a little while to load)
